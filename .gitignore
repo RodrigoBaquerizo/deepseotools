@@ -7,6 +7,9 @@ dist/
 dist-ssr/
 *.local
 
+# Legacy code (keep local, do not push to production)
+legacy/
+
 # Environment variables (Crucial for security!)
 .env
 .env*.local
