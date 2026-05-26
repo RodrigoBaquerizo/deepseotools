@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep SEO Suite</title>
+    <meta name="description" content="Suite unificada de herramientas SEO impulsada por Inteligencia Artificial y datos de búsqueda reales.">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iIzU0NEYwRCIvPjxwYXRoIGQ9Ik0xNiAyMEMxOC4yMDkxIDIwIDE5Ljk5OTkgMTguMjA5MSAxOS45OTk5IDE2QzE5Ljk5OTkgMTMuNzkxIDE4LjIwOTEgMTIgMTYgMTJDMTMuNzkxIDEyIDEyIDEzLjc5MSAxMiAxNkMxMiAxOC4yIDEzLjc5MSAyMCAxNiAyMFoiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPHBhdGggZD0iTTE2IDRDMjAuNDA5OSA0IDIzLjk5OTkgNy41OTAxIDIzLjk5OTkgMTJDMjMuOTk5OSAxNi40MDk5IDIwLjQwOTkgMjAgMTYgMjBDMTEuNTkwMSAyMCA4IDE2LjQwOTkgOCAxMkM4IDcuNTkwMTEgMTEuNTkwMSA0IDE2IDRaIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+Cjwvc3ZnPgo=" />
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN with Typography plugin -->
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    
+    <!-- Configure Tailwind to use custom colors -->
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            },
+            colors: {
+              // Primary brand — indigo-violet (from Deep SERP Insights)
+              'primary':       '#5B4FE8',
+              'primary-dark':  '#4338CA',
+              'primary-light': '#EEF2FF',
+              'accent':        '#8B5CF6',
+              'accent-light':  '#A78BFA',
+              // Surfaces
+              'surface':       '#FFFFFF',
+              'background':    '#F8F7FF',
+              'navy':          '#1A1A2E',
+              'navy-light':    '#252542',
+              // Text
+              'text-primary':  '#1A1A2E',
+              'text-secondary':'#6B7280',
+              'text-muted':    '#9CA3AF',
+              // Borders
+              'border-light':  '#E5E7EB',
+              'border-indigo': '#C7D2FE',
+              // Status
+              'success':       '#10B981',
+              'error':         '#EF4444',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: #F8F7FF;
+      }
+    </style>
+</head>
+<body class="bg-background text-text-primary antialiased">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>
