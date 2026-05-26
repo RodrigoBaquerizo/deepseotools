@@ -1,5 +1,6 @@
 // api/crawl.ts
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { crawlUrl } from '../backend/crawler.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS Headers
@@ -45,14 +46,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    // Dynamic import to handle CommonJS vs ESM compatibility in Node.js/Vercel
-    const crawlerModule = await import('../backend/crawler.js') as any;
-    const crawlUrl = crawlerModule.crawlUrl || crawlerModule.default?.crawlUrl;
-
-    if (typeof crawlUrl !== 'function') {
-      throw new Error('No se pudo encontrar la función crawlUrl en el módulo del crawler');
-    }
-
     const seoData = await crawlUrl(url.trim());
     return res.status(200).json(seoData);
   } catch (err) {

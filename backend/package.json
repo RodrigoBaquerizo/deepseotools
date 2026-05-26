@@ -2,11 +2,11 @@
     "name": "deep-seo-benchmark-backend",
     "version": "1.0.0",
     "private": true,
-    "type": "commonjs",
+    "type": "module",
     "scripts": {
-        "dev": "ts-node server.ts",
+        "dev": "tsx server.ts",
         "build": "tsc",
-        "start": "ts-node --transpile-only server.ts"
+        "start": "tsx server.ts"
     },
     "dependencies": {
         "cheerio": "^1.0.0",
