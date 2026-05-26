@@ -1,6 +1,7 @@
 // backend/server.ts
 import express, { Request, Response } from 'express';
 import cors from 'cors';
+import fetch from 'node-fetch';
 import { crawlUrl } from './crawler';
 
 const PORT = process.env.PORT || 3001;
@@ -53,6 +54,39 @@ app.post('/api/crawl', async (req: Request, res: Response) => {
         const message = err instanceof Error ? err.message : 'Unexpected error';
         console.error('[server] Error crawling URL:', message);
         res.status(500).json({ error: message });
+    }
+});
+
+// Endpoint to resolve Vertex AI Search Grounding redirects to clean destination URLs
+app.get('/api/resolve-url', async (req: Request, res: Response) => {
+    const { url } = req.query as { url?: string };
+
+    if (!url || typeof url !== 'string' || !url.trim()) {
+        res.status(400).json({ error: 'URL is required' });
+        return;
+    }
+
+    try {
+        const response = await fetch(url.trim(), {
+            method: 'HEAD',
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+            },
+            redirect: 'manual', // Do not follow redirects automatically, just read the Location header
+        });
+
+        if (response.status === 302 || response.status === 301) {
+            const location = response.headers.get('location');
+            if (location) {
+                res.json({ resolvedUrl: location });
+                return;
+            }
+        }
+        res.json({ resolvedUrl: url });
+    } catch (err) {
+        const message = err instanceof Error ? err.message : 'Unexpected error';
+        console.error('[server] Error resolving redirect:', message);
+        res.json({ resolvedUrl: url }); // fallback to original on failure
     }
 });
 

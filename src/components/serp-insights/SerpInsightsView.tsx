@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { 
   Search, Loader2, Globe, BarChart2, BookOpen, Sparkles, 
   Layout, Link as LinkIcon, Info, Target, MousePointer2, 
@@ -19,6 +21,41 @@ const FeatureIcon = ({ name }: { name: string }) => {
   return <Sparkles className="w-5 h-5" />;
 };
 
+const GEO_PRESETS = {
+  global: { label: 'Global (Sin geolocalizar)', coords: undefined },
+  spain: { label: 'España (Madrid)', coords: { lat: 40.416775, lng: -3.703790 } },
+  mexico: { label: 'México (CDMX)', coords: { lat: 19.432608, lng: -99.133209 } },
+  usa: { label: 'EE.UU. (New York)', coords: { lat: 40.712776, lng: -74.005974 } },
+  argentina: { label: 'Argentina (Buenos Aires)', coords: { lat: -34.603722, lng: -58.381592 } },
+  colombia: { label: 'Colombia (Bogotá)', coords: { lat: 4.710989, lng: -74.072092 } },
+};
+
+const getDisplayDomain = (url: string, title: string = ''): string => {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname !== 'vertexaisearch.cloud.google.com') {
+      return parsed.hostname.replace(/^www\./, '');
+    }
+  } catch (e) {}
+
+  // Fallback: Si es URL de Vertex AI que no se resolvió, estimar desde el título
+  if (title) {
+    const parts = title.split(/[-|–—]/).map(p => p.trim());
+    if (parts.length > 1) {
+      const siteName = parts[parts.length - 1].toLowerCase().replace(/\s+/g, '');
+      if (siteName.length > 2 && !siteName.includes('aceite')) {
+        if (siteName.includes('wikipedia')) return 'wikipedia.org';
+        if (siteName.includes('walmart')) return 'walmart.com';
+        if (siteName.includes('target')) return 'target.com';
+        if (siteName.includes('amazon')) return 'amazon.es';
+        if (siteName.includes('ebay')) return 'ebay.es';
+        return `${siteName}.com`;
+      }
+    }
+  }
+  return 'google.com';
+};
+
 export const SerpInsightsView: React.FC = () => {
   const [keyword, setKeyword] = useState('');
   const [state, setState] = useState<SearchState>({
@@ -26,16 +63,34 @@ export const SerpInsightsView: React.FC = () => {
     error: null,
     result: null,
   });
+  const [geoMode, setGeoMode] = useState<string>('global');
   const [location, setLocation] = useState<{ lat: number; lng: number } | undefined>();
+  const [showGeoSettings, setShowGeoSettings] = useState<boolean>(false);
 
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        () => console.log("Geolocation permission denied")
-      );
+  const handleGeoSelect = (mode: string) => {
+    if (mode === 'gps') {
+      if (navigator.geolocation) {
+        setGeoMode('gps');
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          },
+          (err) => {
+            console.error("GPS error:", err);
+            alert("No se pudo obtener la geolocalización. Usando ubicación global.");
+            setGeoMode('global');
+            setLocation(undefined);
+          }
+        );
+      } else {
+        alert("Geolocalización no soportada por el navegador.");
+      }
+    } else {
+      setGeoMode(mode);
+      const preset = GEO_PRESETS[mode as keyof typeof GEO_PRESETS];
+      setLocation(preset ? preset.coords : undefined);
     }
-  }, []);
+  };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,34 +107,83 @@ export const SerpInsightsView: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Header & Search Bar inside the content area */}
-      <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex items-center gap-3">
-          <div className="bg-indigo-600 p-2.5 rounded-xl shadow-lg shadow-indigo-200">
-            <Target className="text-white w-6 h-6" />
+      <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm flex flex-col gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex items-center gap-3">
+            <div className="bg-indigo-600 p-2.5 rounded-xl shadow-lg shadow-indigo-200">
+              <Target className="text-white w-6 h-6" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900 tracking-tight">Deep SERP Insights</h1>
+              <p className="text-xs font-semibold text-indigo-600 uppercase tracking-widest bg-indigo-50 px-2 py-0.5 rounded w-max mt-1">v2.2</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-bold text-gray-900 tracking-tight">Deep SERP Insights</h1>
-            <p className="text-xs font-semibold text-indigo-600 uppercase tracking-widest bg-indigo-50 px-2 py-0.5 rounded w-max mt-1">v2.2</p>
-          </div>
+
+          <form onSubmit={handleSearch} className="relative flex-1 max-w-2xl w-full">
+            <input
+              type="text"
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              placeholder="Analizar palabra clave (ej. 'psicólogos en madrid')"
+              className="w-full pl-11 pr-28 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none text-gray-800 font-medium text-sm"
+            />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <button
+              type="submit"
+              disabled={state.loading}
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white px-5 py-2 rounded-xl font-bold text-xs transition-all shadow-md active:scale-95 flex items-center gap-2"
+            >
+              {state.loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Analizar'}
+            </button>
+          </form>
         </div>
 
-        <form onSubmit={handleSearch} className="relative flex-1 max-w-2xl">
-          <input
-            type="text"
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            placeholder="Analizar palabra clave (ej. 'psicólogos en madrid')"
-            className="w-full pl-11 pr-28 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none text-gray-800 font-medium text-sm"
-          />
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+        {/* Collapsible Geo Settings Trigger */}
+        <div className="flex justify-end pt-2 border-t border-gray-50">
           <button
-            type="submit"
-            disabled={state.loading}
-            className="absolute right-2 top-1/2 -translate-y-1/2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white px-5 py-2 rounded-xl font-bold text-xs transition-all shadow-md active:scale-95 flex items-center gap-2"
+            type="button"
+            onClick={() => setShowGeoSettings(!showGeoSettings)}
+            className="flex items-center gap-2 text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors"
           >
-            {state.loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Analizar'}
+            <Globe className="w-4 h-4" />
+            <span>Configuración Geográfica: <span className="underline">{geoMode === 'gps' ? `Ubicación GPS (${location ? `${location.lat.toFixed(2)}, ${location.lng.toFixed(2)}` : 'Buscando...'})` : (GEO_PRESETS[geoMode as keyof typeof GEO_PRESETS]?.label || 'Global')}</span></span>
           </button>
-        </form>
+        </div>
+
+        {/* Geo Settings Panel */}
+        {showGeoSettings && (
+          <div className="pt-2 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 animate-in slide-in-from-top-2 duration-200">
+            {Object.entries(GEO_PRESETS).map(([key, item]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => handleGeoSelect(key)}
+                className={`p-3 rounded-xl border text-xs font-bold transition-all text-center flex flex-col items-center justify-center gap-1 ${
+                  geoMode === key
+                    ? 'border-indigo-500 bg-indigo-50/50 text-indigo-700 shadow-sm shadow-indigo-100'
+                    : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-white hover:border-gray-300'
+                }`}
+              >
+                <span className="truncate max-w-full">{key === 'global' ? 'Global' : item.label.split(' ')[0]}</span>
+                <span className="text-[10px] text-gray-400 font-medium truncate max-w-full">
+                  {key === 'global' ? 'Sin GPS' : item.label.substring(item.label.indexOf('('))}
+                </span>
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => handleGeoSelect('gps')}
+              className={`p-3 rounded-xl border text-xs font-bold transition-all text-center flex flex-col items-center justify-center gap-1 ${
+                geoMode === 'gps'
+                  ? 'border-emerald-500 bg-emerald-50/50 text-emerald-700 shadow-sm shadow-emerald-100'
+                  : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-white hover:border-gray-300'
+              }`}
+            >
+              <span>Ubicación GPS</span>
+              <span className="text-[10px] text-gray-400 font-medium">Actual (Navegador)</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Main Content Area */}
@@ -122,7 +226,12 @@ export const SerpInsightsView: React.FC = () => {
           <div className="space-y-10 animate-in slide-in-from-bottom-4 duration-700">
             {/* Top Metrics Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-              <MetricCard title="Palabra Clave" value={state.result.keyword} icon={<BookOpen className="text-blue-600 w-5 h-5" />} color="blue" />
+              <MetricCard 
+                title="Características SERP" 
+                value={`${state.result.features.length} Detectadas`} 
+                icon={<Layout className="text-blue-600 w-5 h-5" />} 
+                color="blue" 
+              />
               <MetricCard title="Búsqueda Local" value={state.result.location.split(',')[0]} icon={<Globe className="text-emerald-600 w-5 h-5" />} color="emerald" />
               <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm col-span-1 lg:col-span-2">
                 <div className="flex items-center justify-between mb-4">
@@ -141,6 +250,28 @@ export const SerpInsightsView: React.FC = () => {
                   <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-sky-400"></div> Informacional ({state.result.intent.informational}%)</div>
                 </div>
                 <p className="text-xs text-gray-500 italic leading-relaxed line-clamp-2">{state.result.intent.explanation}</p>
+              </div>
+            </div>
+
+            {/* Full Report Narrative */}
+            <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden">
+              <button 
+                className="w-full px-8 py-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                onClick={() => {
+                  const el = document.getElementById('full-report');
+                  el?.classList.toggle('hidden');
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <MessageSquare className="w-5 h-5 text-gray-500" />
+                  <span className="font-bold text-gray-900 uppercase text-xs tracking-widest">Análisis Narrativo Completo</span>
+                </div>
+                <ChevronRight className="w-5 h-5 text-gray-400" />
+              </button>
+              <div id="full-report" className="hidden px-8 pb-12 pt-4 border-t border-gray-50">
+                 <div className="prose prose-indigo max-w-none text-gray-600 text-sm leading-relaxed">
+                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{state.result.rawText}</ReactMarkdown>
+                 </div>
               </div>
             </div>
 
@@ -335,9 +466,9 @@ export const SerpInsightsView: React.FC = () => {
                      <h4 className="text-xs font-bold text-gray-900 mb-3 flex items-center gap-2 italic">
                        <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Guía Táctica:
                      </h4>
-                     <p className="text-xs text-gray-600 leading-relaxed bg-amber-50/50 p-5 rounded-2xl">
-                       {state.result.suggestions.strategy}
-                     </p>
+                     <div className="text-xs text-gray-600 leading-relaxed bg-amber-50/50 p-5 rounded-2xl prose prose-amber max-w-none">
+                       <ReactMarkdown remarkPlugins={[remarkGfm]}>{state.result.suggestions.strategy}</ReactMarkdown>
+                     </div>
                   </div>
                 </div>
               </div>
@@ -368,8 +499,29 @@ export const SerpInsightsView: React.FC = () => {
                           <span className="text-2xl font-black text-gray-200 group-hover:text-indigo-200 transition-colors">{i + 1}</span>
                         </td>
                         <td className="px-8 py-6">
-                          <h4 className="font-bold text-indigo-600 text-base mb-1 group-hover:underline cursor-pointer">{res.title}</h4>
-                          <p className="text-emerald-700 text-xs mb-2 truncate max-w-lg">{res.url}</p>
+                          <a href={res.url} target="_blank" rel="noopener noreferrer" className="inline-block group/link">
+                            <h4 className="font-bold text-indigo-600 text-base mb-1 group-hover/link:underline">{res.title}</h4>
+                          </a>
+                          <div className="flex items-center gap-1.5 mb-2">
+                            {(() => {
+                              try {
+                                const domain = getDisplayDomain(res.url, res.title);
+                                return (
+                                  <img 
+                                    src={`https://www.google.com/s2/favicons?sz=32&domain=${domain}`} 
+                                    alt="" 
+                                    className="w-4 h-4 rounded flex-shrink-0 bg-gray-50"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%2310B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/></svg>`;
+                                    }}
+                                  />
+                                );
+                              } catch {
+                                return null;
+                              }
+                            })()}
+                            <span className="text-emerald-700 text-xs truncate max-w-lg font-medium">{getDisplayDomain(res.url, res.title)}</span>
+                          </div>
                           <p className="text-xs text-gray-500 line-clamp-2 max-w-2xl">{res.description}</p>
                         </td>
                         <td className="px-8 py-6 text-right">
@@ -416,27 +568,6 @@ export const SerpInsightsView: React.FC = () => {
               </div>
             )}
 
-            {/* Full Report Narrative */}
-            <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden">
-              <button 
-                className="w-full px-8 py-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
-                onClick={() => {
-                  const el = document.getElementById('full-report');
-                  el?.classList.toggle('hidden');
-                }}
-              >
-                <div className="flex items-center gap-3">
-                  <MessageSquare className="w-5 h-5 text-gray-500" />
-                  <span className="font-bold text-gray-900 uppercase text-xs tracking-widest">Análisis Narrativo Completo</span>
-                </div>
-                <ChevronRight className="w-5 h-5 text-gray-400" />
-              </button>
-              <div id="full-report" className="hidden px-8 pb-12 pt-4 border-t border-gray-50">
-                 <div className="prose prose-indigo max-w-none whitespace-pre-wrap text-gray-600 text-sm leading-relaxed">
-                   {state.result.rawText}
-                 </div>
-              </div>
-            </div>
           </div>
         )}
       </div>
