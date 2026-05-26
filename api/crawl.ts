@@ -1,6 +1,6 @@
 // api/crawl.ts
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { crawlUrl } from '../backend/crawler';
+import { crawlUrl } from '../backend/crawler.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS Headers
