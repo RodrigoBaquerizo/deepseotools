@@ -32,6 +32,8 @@ Este archivo contiene el listado de tareas pendientes y terminadas para optimiza
   - *Objetivo:* Incentivar la interacción del usuario desde el primer segundo y mostrar el potencial de tipos de búsquedas del módulo.
 - [x] **Gestión discreta de geolocalización**: Quitar el prompt automático de ubicación al cargar la página. Añadir selectores manuales de país/idioma junto con un botón opcional de *"Usar mi ubicación actual"*.
   - *Objetivo:* Evitar solicitudes intrusivas a nivel de navegador y dar mayor control sobre la simulación de SERPs geolocalizadas.
+- [x] **Enriquecimiento de Tarjetas de Métricas**: Agregar la lista de características detectadas en la tarjeta de Características SERP y geocodificación inversa para nombres legibles en Búsqueda Local (GPS).
+  - *Objetivo:* Mejorar la granularidad visual de los elementos especiales del SERP y ofrecer nombres de ubicaciones legibles en lugar de coordenadas.
 - [ ] **Skeleton Loaders y estados dinámicos de carga**: Reemplazar el spinner central estático por skeletons de carga estructurados (que imiten el layout final) y un texto de estado que rote explicando la fase del backend en tiempo real.
   - *Objetivo:* Mejorar el rendimiento percibido (perceived performance) y mitigar el Cumulative Layout Shift (CLS) durante las peticiones a la API.
 

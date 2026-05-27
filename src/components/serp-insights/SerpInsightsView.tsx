@@ -56,6 +56,29 @@ const getDisplayDomain = (url: string, title: string = ''): string => {
   return 'google.com';
 };
 
+const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10&addressdetails=1`, {
+      headers: {
+        'User-Agent': 'DeepSEOTools/1.0'
+      }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const city = data.address?.city || data.address?.town || data.address?.village || data.address?.suburb || data.address?.county;
+      const country = data.address?.country;
+      if (city && country) {
+        return `${city}, ${country} (GPS)`;
+      } else if (city) {
+        return `${city} (GPS)`;
+      }
+    }
+  } catch (e) {
+    console.error("Geocoding error:", e);
+  }
+  return `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`;
+};
+
 export const SerpInsightsView: React.FC = () => {
   const [keyword, setKeyword] = useState('');
   const [state, setState] = useState<SearchState>({
@@ -66,20 +89,31 @@ export const SerpInsightsView: React.FC = () => {
   const [geoMode, setGeoMode] = useState<string>('global');
   const [location, setLocation] = useState<{ lat: number; lng: number } | undefined>();
   const [showGeoSettings, setShowGeoSettings] = useState<boolean>(false);
+  const [resolvedGpsLabel, setResolvedGpsLabel] = useState<string>('');
 
   const handleGeoSelect = (mode: string) => {
     if (mode === 'gps') {
       if (navigator.geolocation) {
         setGeoMode('gps');
+        setResolvedGpsLabel('Buscando ubicación...');
         navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          async (pos) => {
+            const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            setLocation(coords);
+            setResolvedGpsLabel(`GPS (${coords.lat.toFixed(2)}, ${coords.lng.toFixed(2)})`);
+            try {
+              const label = await reverseGeocode(coords.lat, coords.lng);
+              setResolvedGpsLabel(label);
+            } catch (e) {
+              console.error(e);
+            }
           },
           (err) => {
             console.error("GPS error:", err);
             alert("No se pudo obtener la geolocalización. Usando ubicación global.");
             setGeoMode('global');
             setLocation(undefined);
+            setResolvedGpsLabel('');
           }
         );
       } else {
@@ -89,6 +123,7 @@ export const SerpInsightsView: React.FC = () => {
       setGeoMode(mode);
       const preset = GEO_PRESETS[mode as keyof typeof GEO_PRESETS];
       setLocation(preset ? preset.coords : undefined);
+      setResolvedGpsLabel('');
     }
   };
 
@@ -97,7 +132,14 @@ export const SerpInsightsView: React.FC = () => {
     if (!keyword.trim()) return;
     setState({ ...state, loading: true, error: null });
     try {
-      const result = await analyzeSerp(keyword, location);
+      let label = 'Global';
+      if (geoMode === 'gps') {
+        label = resolvedGpsLabel || (location ? `GPS (${location.lat.toFixed(4)}, ${location.lng.toFixed(4)})` : 'GPS');
+      } else {
+        const preset = GEO_PRESETS[geoMode as keyof typeof GEO_PRESETS];
+        label = preset ? preset.label : 'Global';
+      }
+      const result = await analyzeSerp(keyword, location, label);
       setState({ loading: false, error: null, result });
     } catch (error: any) {
       setState({ loading: false, error: error.message, result: null });
@@ -146,7 +188,7 @@ export const SerpInsightsView: React.FC = () => {
             className="flex items-center gap-2 text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors"
           >
             <Globe className="w-4 h-4" />
-            <span>Configuración Geográfica: <span className="underline">{geoMode === 'gps' ? `Ubicación GPS (${location ? `${location.lat.toFixed(2)}, ${location.lng.toFixed(2)}` : 'Buscando...'})` : (GEO_PRESETS[geoMode as keyof typeof GEO_PRESETS]?.label || 'Global')}</span></span>
+            <span>Configuración Geográfica: <span className="underline">{geoMode === 'gps' ? (resolvedGpsLabel || 'Buscando ubicación...') : (GEO_PRESETS[geoMode as keyof typeof GEO_PRESETS]?.label || 'Global')}</span></span>
           </button>
         </div>
 
@@ -231,8 +273,23 @@ export const SerpInsightsView: React.FC = () => {
                 value={`${state.result.features.length} Detectadas`} 
                 icon={<Layout className="text-blue-600 w-5 h-5" />} 
                 color="blue" 
+              >
+                {state.result.features.length > 0 && (
+                  <ul className="list-disc list-inside space-y-0.5 text-[11px] text-gray-500 font-medium">
+                    {state.result.features.map((feature, idx) => (
+                      <li key={idx} className="truncate" title={feature.name}>
+                        {feature.name}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </MetricCard>
+              <MetricCard 
+                title="Búsqueda Local" 
+                value={state.result.location} 
+                icon={<Globe className="text-emerald-600 w-5 h-5" />} 
+                color="emerald" 
               />
-              <MetricCard title="Búsqueda Local" value={state.result.location.split(',')[0]} icon={<Globe className="text-emerald-600 w-5 h-5" />} color="emerald" />
               <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm col-span-1 lg:col-span-2">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
@@ -575,7 +632,7 @@ export const SerpInsightsView: React.FC = () => {
   );
 };
 
-const MetricCard = ({ title, value, icon, color }: { title: string; value: string; icon: any; color: string }) => {
+const MetricCard = ({ title, value, icon, color, children }: { title: string; value: string; icon: any; color: string; children?: React.ReactNode }) => {
   const bgColors: any = {
     blue: 'bg-blue-50 text-blue-600',
     emerald: 'bg-emerald-50 text-emerald-600',
@@ -583,14 +640,21 @@ const MetricCard = ({ title, value, icon, color }: { title: string; value: strin
   };
 
   return (
-    <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex items-center gap-2 mb-4">
-        <div className={`p-2 rounded-xl ${bgColors[color] || 'bg-gray-50'}`}>
-          {icon}
+    <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between min-h-[140px]">
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <div className={`p-2 rounded-xl ${bgColors[color] || 'bg-gray-50'}`}>
+            {icon}
+          </div>
+          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{title}</span>
         </div>
-        <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{title}</span>
+        <p className="text-lg font-extrabold text-gray-900 truncate">{value}</p>
       </div>
-      <p className="text-lg font-extrabold text-gray-900 truncate">{value}</p>
+      {children && (
+        <div className="mt-3 pt-3 border-t border-gray-100">
+          {children}
+        </div>
+      )}
     </div>
   );
 };

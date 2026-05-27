@@ -106,7 +106,8 @@ const resolveRedirectUrl = async (url: string): Promise<string> => {
 
 export const analyzeSerp = async (
   keyword: string,
-  locationContext?: { lat: number; lng: number }
+  locationContext?: { lat: number; lng: number },
+  locationLabel?: string
 ): Promise<SerpAnalysisResult> => {
   // La guía oficial dice: "Always use process.env.GEMINI_API_KEY for the Gemini API"
   const apiKey = process.env.GEMINI_API_KEY;
@@ -339,7 +340,7 @@ export const analyzeSerp = async (
 
     return {
       keyword,
-      location: locationString,
+      location: locationLabel || locationString,
       intent: { transactional, informational, explanation: intentExpl },
       aiOverview: { 
         present: aiPresent, 
