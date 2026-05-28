@@ -6,7 +6,7 @@ Este archivo contiene el listado de tareas pendientes y terminadas para optimiza
 
 ## 1. Tareas Globales
 
-- [ ] **Definir tokens de diseño unificados**: Unificar la paleta de colores premium (HSL/gradientes suaves), tipografías y sombras a través de Tailwind CSS y variables CSS globales.
+- [x] **Definir tokens de diseño unificados**: Unificar la paleta de colores premium (HSL/gradientes suaves), tipografías y sombras a través de Tailwind CSS y variables CSS globales.
 - [ ] **Mejorar navegación de Sidebar**: Optimizar los efectos hover y la responsividad móvil/escritorio de la barra lateral compartida.
 - [ ] **Layout responsivo general**: Asegurar que las vistas se adapten perfectamente a pantallas medianas y de tabletas sin desbordamiento horizontal.
 

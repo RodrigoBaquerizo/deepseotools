@@ -1,4 +1,51 @@
 /* index.css */
+:root {
+  /* Marca - Colores HSL base */
+  --primary-hue: 245;
+  --primary-saturation: 80%;
+  --primary-lightness: 61%; /* Equivale a #5B4FE8 */
+
+  --color-primary: hsl(var(--primary-hue), var(--primary-saturation), var(--primary-lightness));
+  --color-primary-dark: hsl(var(--primary-hue), var(--primary-saturation), 45%);
+  --color-primary-light: hsl(var(--primary-hue), var(--primary-saturation), 97%);
+  
+  --accent-hue: 263;
+  --color-accent: hsl(var(--accent-hue), 90%, 66%); /* #8B5CF6 */
+  --color-accent-light: hsl(var(--accent-hue), 90%, 80%);
+
+  /* Neutros Premium (Uso de Slate/Navy sofisticados) */
+  --color-background: hsl(248, 100%, 98%); /* #F8F7FF */
+  --color-surface: hsl(0, 0%, 100%); /* #FFFFFF */
+  --color-navy: hsl(240, 30%, 15%); /* #1A1A2E */
+  --color-navy-light: hsl(240, 28%, 20%); /* #252542 */
+  
+  /* Texto Semántico */
+  --color-text-primary: var(--color-navy);
+  --color-text-secondary: hsl(215, 16%, 47%); /* #6B7280 */
+  --color-text-muted: hsl(218, 11%, 65%); /* #9CA3AF */
+
+  /* Estados de Negocio */
+  --color-success: hsl(158, 82%, 40%); /* #10B981 */
+  --color-error: hsl(0, 84%, 60%); /* #EF4444 */
+  --color-warning: hsl(38, 92%, 50%); /* #F59E0B */
+  --color-info: hsl(200, 95%, 48%); /* #0EA5E9 */
+
+  /* Degradados Premium */
+  --gradient-premium: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+  --gradient-soft-indigo: linear-gradient(135deg, hsl(245, 80%, 98%) 0%, hsl(263, 90%, 97%) 100%);
+  --gradient-dark: linear-gradient(135deg, var(--color-navy) 0%, var(--color-navy-light) 100%);
+
+  /* Sombras Premium Tintadas (Indigo Soft Shadows) */
+  --shadow-sm: 0 1px 2px 0 rgba(91, 79, 232, 0.05);
+  --shadow-md: 0 4px 20px -2px rgba(91, 79, 232, 0.08), 0 2px 8px -1px rgba(91, 79, 232, 0.04);
+  --shadow-lg: 0 10px 30px -5px rgba(91, 79, 232, 0.1), 0 4px 12px -2px rgba(91, 79, 232, 0.05);
+  --shadow-premium: 0 20px 40px -15px rgba(91, 79, 232, 0.15);
+  --shadow-inner: inset 0 2px 4px 0 rgba(91, 79, 232, 0.06);
+
+  /* Tipografía */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -13,14 +60,14 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #F8F7FF;
+  background: var(--color-background);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #C7D2FE;
+  background: var(--color-primary-light);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #8B5CF6;
+  background: var(--color-accent);
 }
