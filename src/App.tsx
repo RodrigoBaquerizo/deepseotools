@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { Menu, Sparkles } from 'lucide-react';
 import { Sidebar } from './components/shared/Sidebar';
 import { SerpInsightsView } from './components/serp-insights/SerpInsightsView';
 import { analyzeWebsite, getBenchmarkInsights } from './services/geminiService';
@@ -46,9 +47,9 @@ const TrashIcon: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' }) 
 );
 
 const App: React.FC = () => {
-  // Navigation tabs: 'seo-benchmark' or 'serp-insights'
   const [activeTab, setActiveTab] = useState<'seo-benchmark' | 'serp-insights'>('seo-benchmark');
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState<boolean>(false);
 
   // SEO Benchmark State
   const [userSiteUrl, setUserSiteUrl] = useState<string>('');
@@ -136,10 +137,29 @@ const App: React.FC = () => {
         setActiveTab={setActiveTab} 
         collapsed={sidebarCollapsed} 
         setCollapsed={setSidebarCollapsed} 
+        mobileOpen={mobileSidebarOpen}
+        setMobileOpen={setMobileSidebarOpen}
       />
 
       {/* Main View Container */}
       <div className="flex-1 flex flex-col min-h-screen overflow-y-auto">
+        {/* Mobile Header Bar */}
+        <header className="lg:hidden bg-navy text-white px-6 py-4 flex items-center justify-between border-b border-navy-light sticky top-0 z-30 shadow-md">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setMobileSidebarOpen(true)}
+              className="p-1.5 rounded-lg hover:bg-navy-light text-gray-400 hover:text-white transition-colors"
+              title="Abrir menú"
+            >
+              <Menu className="w-6 h-6 text-white" />
+            </button>
+            <span className="font-extrabold text-sm tracking-tight text-white uppercase bg-clip-text">Deep SEO Suite</span>
+          </div>
+          <div className="w-8 h-8 rounded-lg bg-gradient-premium flex items-center justify-center text-white shadow-md">
+            <Sparkles className="w-4 h-4 animate-pulse" />
+          </div>
+        </header>
+
         <main className="flex-1 w-full max-w-6xl mx-auto px-6 sm:px-8 py-8">
           
           {/* Active View: SEO Benchmark */}
