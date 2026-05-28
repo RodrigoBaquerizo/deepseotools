@@ -24,18 +24,22 @@ Este archivo contiene el listado de tareas pendientes y terminadas para optimiza
   - *Objetivo:* Mejorar la navegación natural y la interacción del usuario al inspeccionar competidores directos.
 - [x] **Visualización de Favicons**: Obtener y mostrar el favicon oficial del dominio de cada competidor junto a su URL en la tabla de posiciones principales.
   - *Objetivo:* Crear una interfaz más auténtica, que simule visualmente una SERP real de Google y reduzca la carga cognitiva.
-- [ ] **Rediseño del gráfico de Intención de Búsqueda**: Reemplazar la barra bicolor simple por un gráfico más refinado y moderno, soportando la categorización de 4 tipos estándar (Informacional, Navegacional, Comercial, Transaccional).
+- [x] **Rediseño del gráfico de Intención de Búsqueda**: Reemplazar la barra bicolor simple por un gráfico más refinado y moderno, soportando la categorización de 4 tipos estándar (Informacional, Navegacional, Comercial, Transaccional).
   - *Objetivo:* Alinear el diagnóstico con los estándares y la estética de las suites SEO profesionales del mercado.
 - [x] **Reemplazo de métrica redundante**: Sustituir la tarjeta de "Palabra Clave" en la rejilla superior por una métrica analítica nueva (ej. "Complejidad de SERP" o "Tipo de Intención Dominante").
   - *Objetivo:* Eliminar redundancias de información (ya que el término de búsqueda se muestra en la barra superior) y maximizar el valor de la pantalla.
-- [ ] **Ejemplos de inicio rápido (Chips interactivos)**: Introducir chips clickables en el estado previo a la búsqueda con términos de ejemplo representativos (ej. "camisetas blancas", "psicólogo madrid", "cómo aprender seo").
+- [x] **Ejemplos de inicio rápido (Chips interactivos)**: Introducir chips clickables en el estado previo a la búsqueda con términos de ejemplo representativos (ej. "zapatillas Nike", "psicólogo madrid", "cómo aprender seo", "receta de tortilla de patatas").
   - *Objetivo:* Incentivar la interacción del usuario desde el primer segundo y mostrar el potencial de tipos de búsquedas del módulo.
-- [x] **Gestión discreta de geolocalización**: Quitar el prompt automático de ubicación al cargar la página. Añadir selectores manuales de país/idioma junto con un botón opcional de *"Usar mi ubicación actual"*.
+- [x] **Gestión discreta de geolocalización**: Quitar el prompt automático de ubicación al cargar la página. Añadir selectores manuales de país/idioma junto con un botón opcional de *"Usar mi ubicación actual"*. Establecer Madrid, España como geolocalización predeterminada.
   - *Objetivo:* Evitar solicitudes intrusivas a nivel de navegador y dar mayor control sobre la simulación de SERPs geolocalizadas.
 - [x] **Enriquecimiento de Tarjetas de Métricas**: Agregar la lista de características detectadas en la tarjeta de Características SERP y geocodificación inversa para nombres legibles en Búsqueda Local (GPS).
   - *Objetivo:* Mejorar la granularidad visual de los elementos especiales del SERP y ofrecer nombres de ubicaciones legibles en lugar de coordenadas.
-- [ ] **Skeleton Loaders y estados dinámicos de carga**: Reemplazar el spinner central estático por skeletons de carga estructurados (que imiten el layout final) y un texto de estado que rote explicando la fase del backend en tiempo real.
+- [x] **Skeleton Loaders y estados dinámicos de carga**: Reemplazar el spinner central estático por skeletons de carga estructurados (que imiten el layout final) y un texto de estado que rote explicando la fase del backend en tiempo real.
   - *Objetivo:* Mejorar el rendimiento percibido (perceived performance) y mitigar el Cumulative Layout Shift (CLS) durante las peticiones a la API.
+- [x] **Estructura ejecutiva para el Análisis Narrativo**: Mejorar el prompt de Gemini para estructurar el "Análisis narrativo completo" en secciones estándar obligatorias mediante encabezados claros, subtítulos y listas de viñetas (bullet points) para que sea un reporte más ejecutivo y fácil de presentar.
+  - *Objetivo:* Evitar textos extensos en bloques continuos y estandarizar la presentación de insights competitivos.
+- [ ] **Optimización del tiempo de carga**: Optimizar el procesamiento de peticiones y respuestas con Gemini (reduciendo latencias de raspado y grounding) para agilizar el análisis cuando existen múltiples tipos de resultados.
+  - *Objetivo:* Reducir el tiempo de espera percibido en búsquedas complejas.
 
 ---
 

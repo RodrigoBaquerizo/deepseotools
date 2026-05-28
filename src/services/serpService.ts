@@ -131,9 +131,11 @@ export const analyzeSerp = async (
     PROPORCIONA TU RESPUESTA SIGUIENDO ESTA ESTRUCTURA EXACTA (usa los encabezados tal cual):
 
     ## INTENTION
-    Transactional: [Porcentaje]%
     Informational: [Porcentaje]%
-    Explanation: [Breve explicación en castellano de la intención predominante]
+    Navigational: [Porcentaje]%
+    Commercial: [Porcentaje]%
+    Transactional: [Porcentaje]%
+    Explanation: [Breve explicación en castellano de la intención predominante y la distribución de las intenciones detectadas, en un máximo de 25 palabras]
 
     ## AI_OVERVIEW
     Present: [Yes/No]
@@ -173,7 +175,20 @@ export const analyzeSerp = async (
     - Cada línea de "Product:" debe tener exactamente 4 campos separados por el carácter "|".
 
     ## FULL_REPORT
-    [Aquí incluye en castellano tu análisis narrativo detallado y completo del SERP]
+    Aquí incluye tu análisis narrativo estructurado estrictamente bajo los siguientes tres subencabezados (usando formato de tercer nivel '###'):
+    
+    ### Intención de Búsqueda y SERP Features
+    [Puntos clave sobre la intención y características especiales detectadas]
+    
+    ### Descripción de competencia
+    [Análisis del panorama competitivo e insights clave de las posiciones orgánicas]
+    
+    ### Recomendación estratégica
+    [Acciones y recomendaciones accionables para posicionarse sobre la competencia]
+    
+    REGLAS DE CONTENIDO:
+    - Ninguna de las tres secciones (###) debe exceder los 500 caracteres de longitud. Sé sumamente conciso y al grano.
+    - Utiliza listas con viñetas (bullet points) para organizar la información y facilitar su lectura rápida.
   `;
 
   const MAX_RETRIES = 3;
@@ -209,7 +224,8 @@ export const analyzeSerp = async (
 
     // Parsing Logic
     const extractSection = (name: string) => {
-      const regex = new RegExp(`## ${name}([\\s\\S]*?)(?=##|$)`, 'i');
+      const cleanName = name.replace(/_/g, '[\\s_]');
+      const regex = new RegExp(`(?:^|\\n)(?:##?#?[ \\t]+|\\*\\*)[ \\t]*${cleanName}[ \\t]*(?::|\\*\\*|\\b)(?:[^\\n]*?)\\n([\\s\\S]*?)(?=(?:\\n##?#?[ \\t]+|\\n\\*\\*)[ \\t]*(?:INTENTION|AI_OVERVIEW|FEATURES|ORGANIC|STRATEGY|RELATED|SHOPPING|FULL_REPORT)|$)`, 'i');
       return regex.exec(cleanText)?.[1]?.trim() || "";
     };
 
@@ -228,9 +244,16 @@ export const analyzeSerp = async (
         .map(line => line.trim().replace(prefix, '').trim());
     };
 
-    const transactional = parseInt(intentSection.match(/Transactional:\s*(\d+)/)?.[1] || "0");
-    const informational = parseInt(intentSection.match(/Informational:\s*(\d+)/)?.[1] || "0");
-    const intentExpl = intentSection.match(/Explanation:\s*(.*)/)?.[1] || "";
+    const parsePercentage = (sectionText: string, keyEnglish: string, keySpanish: string) => {
+      const regex = new RegExp(`(?:${keyEnglish}|${keySpanish})[^*:\\s]*\\s*:\\s*(\\d+)`, 'i');
+      return parseInt(regex.exec(sectionText)?.[1] || "0");
+    };
+
+    const informational = parsePercentage(intentSection, "Informational", "Informacional");
+    const navigational = parsePercentage(intentSection, "Navigational", "Navegacional");
+    const commercial = parsePercentage(intentSection, "Commercial", "Comercial");
+    const transactional = parsePercentage(intentSection, "Transactional", "Transaccional");
+    const intentExpl = intentSection.match(/(?:Explanation|Explicación)[^*:\s]*\s*:\s*(.*)/i)?.[1]?.trim() || "";
 
     const aiPresent = aiSection.match(/Present:\s*Yes/i) !== null;
     const aiSummary = aiSection.match(/Summary:\s*([\s\S]*?)(?=Extract:|$)/i)?.[1]?.trim() || "";
@@ -260,9 +283,9 @@ export const analyzeSerp = async (
       return { title: title || "", url: url || "", description: description || "" };
     });
 
-    const suggestedTitle = strategySection.match(/Suggested Title:\s*(.*)/i)?.[1] || "";
-    const suggestedMeta = strategySection.match(/Suggested Meta:\s*(.*)/i)?.[1] || "";
-    const strategyBody = strategySection.match(/Strategy:\s*([\s\S]*?)$/i)?.[1]?.trim() || "";
+    const suggestedTitle = strategySection.match(/(?:Suggested Title|Título propuesto|Título sugerido|Suggested Meta Title|Título propuesto sugerido|Suggested\s*Title)[^*:\s]*\s*:\s*(.*)/i)?.[1]?.trim() || "";
+    const suggestedMeta = strategySection.match(/(?:Suggested Meta|Meta descripción propuesta|Meta descripción sugerida|Suggested Meta Description|Meta sugerido|Suggested\s*Meta)[^*:\s]*\s*:\s*(.*)/i)?.[1]?.trim() || "";
+    const strategyBody = strategySection.match(/(?:Strategy|Estrategia)[^*:\s]*\s*:\s*([\s\S]*?)$/i)?.[1]?.trim() || "";
 
     // Diagnostic: warn if critical sections parsed as empty so devs can inspect the raw response
     if (!intentSection || !strategySection || organic.length === 0) {
@@ -341,7 +364,7 @@ export const analyzeSerp = async (
     return {
       keyword,
       location: locationLabel || locationString,
-      intent: { transactional, informational, explanation: intentExpl },
+      intent: { informational, navigational, commercial, transactional, explanation: intentExpl },
       aiOverview: { 
         present: aiPresent, 
         summary: aiSummary, 
@@ -359,7 +382,8 @@ export const analyzeSerp = async (
         insight: shoppingInsight
       },
       groundingLinks: resolvedGroundingLinks,
-      rawText: fullReport || text
+      rawText: fullReport || text,
+      rawGeminiResponse: text
     };
 
     } catch (error) {

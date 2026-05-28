@@ -79,6 +79,13 @@ const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
   return `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`;
 };
 
+const QUICK_EXAMPLES = [
+  { label: '👟 Zapatillas Nike', query: 'zapatillas Nike' },
+  { label: '📍 Psicólogo Madrid', query: 'psicólogo madrid' },
+  { label: '🎓 Cómo aprender SEO', query: 'cómo aprender seo' },
+  { label: '🍳 Receta de tortilla de patatas', query: 'receta de tortilla de patatas' }
+];
+
 export const SerpInsightsView: React.FC = () => {
   const [keyword, setKeyword] = useState('');
   const [state, setState] = useState<SearchState>({
@@ -86,10 +93,38 @@ export const SerpInsightsView: React.FC = () => {
     error: null,
     result: null,
   });
-  const [geoMode, setGeoMode] = useState<string>('global');
-  const [location, setLocation] = useState<{ lat: number; lng: number } | undefined>();
+  const [geoMode, setGeoMode] = useState<string>('spain');
+  const [location, setLocation] = useState<{ lat: number; lng: number } | undefined>(GEO_PRESETS.spain.coords);
   const [showGeoSettings, setShowGeoSettings] = useState<boolean>(false);
   const [resolvedGpsLabel, setResolvedGpsLabel] = useState<string>('');
+  const [loadingMessage, setLoadingMessage] = useState('Iniciando rastreador del SERP...');
+
+  useEffect(() => {
+    if (!state.loading) {
+      setLoadingMessage('Iniciando rastreador del SERP...');
+      return;
+    }
+
+    const messages = [
+      'Iniciando rastreador del SERP...',
+      'Conectando con Google Search Grounding...',
+      'Analizando la intención de búsqueda (Info, Navegacional, Comercial, Transaccional)...',
+      'Extrayendo características especiales de la SERP...',
+      'Verificando presencia de Google AI Overviews...',
+      'Buscando resultados locales y geolocalización...',
+      'Estructurando insights estratégicos de competidores...',
+      'Generando propuestas de Meta Title y Description optimizados...',
+      'Finalizando análisis táctico completo...'
+    ];
+
+    let currentIdx = 0;
+    const interval = setInterval(() => {
+      currentIdx = (currentIdx + 1) % messages.length;
+      setLoadingMessage(messages[currentIdx]);
+    }, 2500);
+
+    return () => clearInterval(interval);
+  }, [state.loading]);
 
   const handleGeoSelect = (mode: string) => {
     if (mode === 'gps') {
@@ -127,10 +162,9 @@ export const SerpInsightsView: React.FC = () => {
     }
   };
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!keyword.trim()) return;
-    setState({ ...state, loading: true, error: null });
+  const performSearch = async (queryToSearch: string) => {
+    if (!queryToSearch.trim()) return;
+    setState(prev => ({ ...prev, loading: true, error: null }));
     try {
       let label = 'Global';
       if (geoMode === 'gps') {
@@ -139,11 +173,21 @@ export const SerpInsightsView: React.FC = () => {
         const preset = GEO_PRESETS[geoMode as keyof typeof GEO_PRESETS];
         label = preset ? preset.label : 'Global';
       }
-      const result = await analyzeSerp(keyword, location, label);
+      const result = await analyzeSerp(queryToSearch, location, label);
       setState({ loading: false, error: null, result });
     } catch (error: any) {
       setState({ loading: false, error: error.message, result: null });
     }
+  };
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    performSearch(keyword);
+  };
+
+  const handleExampleClick = (query: string) => {
+    setKeyword(query);
+    performSearch(query);
   };
 
   return (
@@ -231,28 +275,33 @@ export const SerpInsightsView: React.FC = () => {
       {/* Main Content Area */}
       <div>
         {!state.result && !state.loading && !state.error && (
-          <div className="text-center py-24 bg-white border border-dashed border-gray-200 rounded-[2.5rem] shadow-sm">
-            <div className="bg-indigo-50 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6 transform rotate-3">
+          <div className="text-center py-16 md:py-24 bg-white border border-dashed border-gray-200 rounded-[2.5rem] shadow-sm flex flex-col items-center justify-center">
+            <div className="bg-indigo-50 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6 transform rotate-3 shadow-inner">
               <BarChart2 className="text-indigo-600 w-10 h-10" />
             </div>
             <h2 className="text-2xl font-extrabold text-gray-900 mb-3">Auditoría SEO de SERPs</h2>
-            <p className="text-gray-500 max-w-lg mx-auto text-sm leading-relaxed">
-              Analiza la competencia y la intención de búsqueda de cualquier palabra clave usando inteligencia artificial de última generación.
+            <p className="text-gray-500 max-w-lg mx-auto text-sm leading-relaxed mb-8 px-6">
+              Analiza la competencia y la intención de búsqueda de cualquier palabra clave.
             </p>
+            <div className="max-w-2xl mx-auto space-y-4 px-6">
+              <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Ejemplos de inicio rápido</h3>
+              <div className="flex flex-wrap justify-center gap-2.5">
+                {QUICK_EXAMPLES.map((example) => (
+                  <button
+                    key={example.query}
+                    onClick={() => handleExampleClick(example.query)}
+                    className="px-4 py-2 bg-indigo-50/50 hover:bg-indigo-600 hover:text-white border border-indigo-100/50 rounded-xl text-xs font-bold text-indigo-700 transition-all duration-200 active:scale-95 shadow-sm hover:shadow-md hover:border-indigo-600 cursor-pointer flex items-center"
+                  >
+                    {example.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
         {state.loading && (
-          <div className="flex flex-col items-center justify-center py-24 space-y-6">
-            <div className="relative">
-              <div className="w-24 h-24 border-[6px] border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
-              <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-indigo-400 w-8 h-8" />
-            </div>
-            <div className="text-center space-y-2">
-              <h3 className="text-lg font-bold text-gray-900">Rastreando el SERP...</h3>
-              <p className="text-sm text-gray-500 font-medium animate-pulse italic">"Analizando la página 1 de resultados con Google Search Grounding..."</p>
-            </div>
-          </div>
+          <SerpInsightsSkeleton message={loadingMessage} />
         )}
 
         {state.error && (
@@ -269,44 +318,105 @@ export const SerpInsightsView: React.FC = () => {
             {/* Top Metrics Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
               <MetricCard 
-                title="Características SERP" 
-                value={`${state.result.features.length} Detectadas`} 
-                icon={<Layout className="text-blue-600 w-5 h-5" />} 
-                color="blue" 
-              >
-                {state.result.features.length > 0 && (
-                  <ul className="list-disc list-inside space-y-0.5 text-[11px] text-gray-500 font-medium">
-                    {state.result.features.map((feature, idx) => (
-                      <li key={idx} className="truncate" title={feature.name}>
-                        {feature.name}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </MetricCard>
-              <MetricCard 
                 title="Búsqueda Local" 
                 value={state.result.location} 
                 icon={<Globe className="text-emerald-600 w-5 h-5" />} 
                 color="emerald" 
               />
-              <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm col-span-1 lg:col-span-2">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <MousePointer2 className="text-indigo-600 w-5 h-5" />
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Intención de Búsqueda</span>
+              <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md hover:border-indigo-100 transition-all duration-300 col-span-1 lg:col-span-3 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <MousePointer2 className="text-indigo-600 w-5 h-5" />
+                      <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Intención de Búsqueda</span>
+                    </div>
+                    <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full uppercase tracking-tighter">Probabilidad</span>
                   </div>
-                  <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full uppercase tracking-tighter">Probabilidad</span>
+
+                  {/* Barra de progreso multi-segmento premium con degradados y separadores */}
+                  <div className="flex gap-[2px] h-5 mb-4 rounded-full overflow-hidden bg-gray-100 shadow-inner border border-gray-50/50">
+                    {state.result.intent.informational > 0 && (
+                      <div 
+                        className="h-full bg-gradient-to-r from-sky-400 to-sky-500 transition-all duration-1000 relative group" 
+                        style={{ width: `${state.result.intent.informational}%` }}
+                        title={`Informacional: ${state.result.intent.informational}%`}
+                      />
+                    )}
+                    {state.result.intent.navigational > 0 && (
+                      <div 
+                        className="h-full bg-gradient-to-r from-amber-400 to-amber-500 transition-all duration-1000 relative group" 
+                        style={{ width: `${state.result.intent.navigational}%` }}
+                        title={`Navegacional: ${state.result.intent.navigational}%`}
+                      />
+                    )}
+                    {state.result.intent.commercial > 0 && (
+                      <div 
+                        className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 transition-all duration-1000 relative group" 
+                        style={{ width: `${state.result.intent.commercial}%` }}
+                        title={`Comercial: ${state.result.intent.commercial}%`}
+                      />
+                    )}
+                    {state.result.intent.transactional > 0 && (
+                      <div 
+                        className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 transition-all duration-1000 relative group" 
+                        style={{ width: `${state.result.intent.transactional}%` }}
+                        title={`Transaccional: ${state.result.intent.transactional}%`}
+                      />
+                    )}
+                  </div>
+
+                  {/* Cuadrícula detallada con badges estilizados e iconos */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+                    {/* Info */}
+                    <div className="flex flex-col items-center justify-between p-3 rounded-2xl bg-sky-50/20 border border-sky-100/50 hover:bg-sky-50/50 hover:border-sky-200 transition-all duration-300 text-center group/chip">
+                      <div className="flex items-center gap-1.5 text-sky-600 mb-1">
+                        <BookOpen className="w-3.5 h-3.5 group-hover/chip:scale-110 transition-transform" />
+                        <span className="text-[10px] font-bold uppercase tracking-wider">Info</span>
+                      </div>
+                      <span className="text-sm font-extrabold text-sky-900">{state.result.intent.informational}%</span>
+                    </div>
+
+                    {/* Navegacional */}
+                    <div className="flex flex-col items-center justify-between p-3 rounded-2xl bg-amber-50/20 border border-amber-100/50 hover:bg-amber-50/50 hover:border-amber-200 transition-all duration-300 text-center group/chip">
+                      <div className="flex items-center gap-1.5 text-amber-600 mb-1">
+                        <Globe className="w-3.5 h-3.5 group-hover/chip:scale-110 transition-transform" />
+                        <span className="text-[10px] font-bold uppercase tracking-wider">Naveg</span>
+                      </div>
+                      <span className="text-sm font-extrabold text-amber-900">{state.result.intent.navigational}%</span>
+                    </div>
+
+                    {/* Comercial */}
+                    <div className="flex flex-col items-center justify-between p-3 rounded-2xl bg-violet-50/20 border border-violet-100/50 hover:bg-violet-50/50 hover:border-violet-200 transition-all duration-300 text-center group/chip">
+                      <div className="flex items-center gap-1.5 text-violet-600 mb-1">
+                        <BarChart2 className="w-3.5 h-3.5 group-hover/chip:scale-110 transition-transform" />
+                        <span className="text-[10px] font-bold uppercase tracking-wider">Comer</span>
+                      </div>
+                      <span className="text-sm font-extrabold text-violet-900">{state.result.intent.commercial}%</span>
+                    </div>
+
+                    {/* Transaccional */}
+                    <div className="flex flex-col items-center justify-between p-3 rounded-2xl bg-emerald-50/20 border border-emerald-100/50 hover:bg-emerald-50/50 hover:border-emerald-200 transition-all duration-300 text-center group/chip">
+                      <div className="flex items-center gap-1.5 text-emerald-600 mb-1">
+                        <ShoppingBag className="w-3.5 h-3.5 group-hover/chip:scale-110 transition-transform" />
+                        <span className="text-[10px] font-bold uppercase tracking-wider">Transac</span>
+                      </div>
+                      <span className="text-sm font-extrabold text-emerald-900">{state.result.intent.transactional}%</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex gap-2 h-4 mb-4 rounded-full overflow-hidden bg-gray-100">
-                  <div className="bg-indigo-500 transition-all duration-1000" style={{ width: `${state.result.intent.transactional}%` }}></div>
-                  <div className="bg-sky-400 transition-all duration-1000" style={{ width: `${state.result.intent.informational}%` }}></div>
+
+                {/* Burbuja de Insight de IA */}
+                <div className="mt-2 pt-3 border-t border-gray-100">
+                  <div className="flex items-start gap-2.5 bg-indigo-50/40 border border-indigo-100/50 rounded-2xl p-3">
+                    <Sparkles className="w-4 h-4 text-indigo-500 flex-shrink-0 mt-0.5 animate-pulse" />
+                    <div>
+                      <h4 className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mb-0.5">Resumen de Intención</h4>
+                      <p className="text-[11px] text-gray-700 leading-relaxed font-medium">
+                        {state.result.intent.explanation}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex justify-between text-[11px] font-bold mb-3">
-                  <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-indigo-500"></div> Transaccional ({state.result.intent.transactional}%)</div>
-                  <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-sky-400"></div> Informacional ({state.result.intent.informational}%)</div>
-                </div>
-                <p className="text-xs text-gray-500 italic leading-relaxed line-clamp-2">{state.result.intent.explanation}</p>
               </div>
             </div>
 
@@ -625,6 +735,7 @@ export const SerpInsightsView: React.FC = () => {
               </div>
             )}
 
+
           </div>
         )}
       </div>
@@ -655,6 +766,140 @@ const MetricCard = ({ title, value, icon, color, children }: { title: string; va
           {children}
         </div>
       )}
+    </div>
+  );
+};
+
+const SerpInsightsSkeleton = ({ message }: { message: string }) => {
+  return (
+    <div className="space-y-10 animate-pulse">
+      {/* Dynamic phase loading indicator */}
+      <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm flex flex-col items-center justify-center text-center space-y-4">
+        <div className="relative flex items-center justify-center">
+          <div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
+          <Sparkles className="absolute text-indigo-400 w-6 h-6 animate-pulse" />
+        </div>
+        <div className="space-y-1">
+          <h3 className="text-base font-bold text-gray-900">Procesando consulta...</h3>
+          <p className="text-xs text-indigo-600 font-bold uppercase tracking-wider animate-pulse">{message}</p>
+        </div>
+      </div>
+
+      {/* Top Metrics Grid Skeleton */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        {/* Búsqueda Local Skeleton */}
+        <div className="bg-white p-6 rounded-3xl border border-gray-100 min-h-[140px] flex flex-col justify-between">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center">
+                <div className="w-4 h-4 rounded-full bg-gray-200"></div>
+              </div>
+              <div className="h-3 w-24 bg-gray-200 rounded"></div>
+            </div>
+            <div className="h-5 w-32 bg-gray-200 rounded"></div>
+          </div>
+          <div className="h-2 w-full bg-gray-100 rounded mt-3"></div>
+        </div>
+
+        {/* Intención de Búsqueda Skeleton */}
+        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm col-span-1 lg:col-span-3 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 bg-gray-100 rounded-lg"></div>
+                <div className="h-3 w-32 bg-gray-200 rounded"></div>
+              </div>
+              <div className="h-4 w-16 bg-gray-100 rounded-full"></div>
+            </div>
+
+            {/* Multi-segment progress bar skeleton */}
+            <div className="h-5 mb-4 rounded-full bg-gray-100 w-full animate-pulse"></div>
+
+            {/* Cuadrícula detallada con 4 chips skeleton */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="flex flex-col items-center justify-between p-3 rounded-2xl bg-gray-50 border border-gray-100 text-center">
+                  <div className="h-2.5 w-10 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-4 w-8 bg-gray-300 rounded"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Burbuja de Insight de IA Skeleton */}
+          <div className="mt-2 pt-3 border-t border-gray-100">
+            <div className="flex items-start gap-2.5 bg-gray-50/50 border border-gray-100 rounded-2xl p-3">
+              <div className="w-4 h-4 bg-gray-200 rounded-full flex-shrink-0 mt-0.5 animate-pulse"></div>
+              <div className="flex-1 space-y-1.5">
+                <div className="h-2 w-28 bg-gray-300 rounded"></div>
+                <div className="h-2.5 w-full bg-gray-200 rounded"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Narrative Analysis Accordion Skeleton */}
+      <div className="bg-white rounded-[2rem] border border-gray-100 overflow-hidden">
+        <div className="px-8 py-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 bg-gray-200 rounded"></div>
+            <div className="h-3 w-48 bg-gray-200 rounded"></div>
+          </div>
+          <div className="w-5 h-5 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+
+      {/* Features & Strategy Split Skeleton */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="lg:col-span-5 bg-white rounded-3xl border border-gray-100 p-6 space-y-4">
+          <div className="h-3 w-36 bg-gray-200 rounded mb-6"></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-2">
+                <div className="h-3 w-20 bg-gray-200 rounded"></div>
+                <div className="h-2 w-full bg-gray-200 rounded"></div>
+                <div className="h-2 w-3/4 bg-gray-200 rounded"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="lg:col-span-7 bg-white rounded-3xl border border-gray-100 p-8 space-y-6">
+          <div className="h-4 w-44 bg-gray-200 rounded mb-6"></div>
+          <div className="space-y-4">
+            {[1, 2].map((i) => (
+              <div key={i} className="space-y-2">
+                <div className="h-2.5 w-24 bg-gray-200 rounded"></div>
+                <div className="h-10 w-full bg-gray-50 border-l-4 border-gray-200 rounded-r-xl"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Organic Results Table Skeleton */}
+      <div className="bg-white rounded-[2rem] border border-gray-100 overflow-hidden">
+        <div className="bg-gray-900 px-8 py-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-6 h-6 bg-gray-700 rounded"></div>
+            <div className="h-4 w-52 bg-gray-700 rounded"></div>
+          </div>
+          <div className="h-5 w-24 bg-gray-700 rounded-full"></div>
+        </div>
+        <div className="p-8 space-y-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex gap-6 border-b border-gray-50 pb-6 last:border-0 last:pb-0">
+              <div className="w-8 h-8 bg-gray-200 rounded-full flex-shrink-0"></div>
+              <div className="flex-1 space-y-3">
+                <div className="h-4 w-2/3 bg-gray-200 rounded"></div>
+                <div className="h-2.5 w-1/3 bg-gray-200 rounded"></div>
+                <div className="h-3 w-full bg-gray-100 rounded"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

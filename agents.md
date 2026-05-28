@@ -31,3 +31,6 @@ Este archivo define las reglas generales, objetivos y configuración para el des
 
 4. **Uso del SDK de Google Gen AI**:
    - Ambos proyectos utilizan el nuevo SDK oficial de Google Gen AI (`@google/genai`) importando `GoogleGenAI`.
+
+5. **Despliegues y Push a Producción**:
+   - Está estrictamente prohibido que la IA intente hacer `git push` al repositorio remoto de producción a menos que el usuario lo solicite de manera explícita y directa.

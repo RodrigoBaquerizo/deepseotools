@@ -88,8 +88,10 @@ export interface SerpAnalysisResult {
   keyword: string;
   location: string;
   intent: {
-    transactional: number;
     informational: number;
+    navigational: number;
+    commercial: number;
+    transactional: number;
     explanation: string;
   };
   aiOverview: {
@@ -114,6 +116,7 @@ export interface SerpAnalysisResult {
   };
   groundingLinks: { title: string; url: string }[];
   rawText: string;
+  rawGeminiResponse?: string;
 }
 
 export interface SearchState {

@@ -150,7 +150,7 @@ Analiza el estado de las páginas de resultados de Google (SERP) para palabras c
 
 * **Estructura del Output de SERP**:
   El prompt fuerza a Gemini a responder bajo un formato estructurado estricto que luego se parsea con expresiones regulares para generar:
-  * **Intención de búsqueda**: Ratio porcentual (Transaccional vs Informacional) con explicación narrativa.
+  * **Intención de búsqueda**: Visualización premium tipo dashboard con una barra segmentada con degradados (sky, amber, violet, emerald) y separadores de `2px`, detalle con iconos interactivos de `lucide-react` para cada intención, y un resumen narrativo de la intención (limitado en el prompt de Gemini a un máximo de 25 palabras y expuesto en una burbuja de insight de IA completa).
   * **AI Overview (SGE)**: Si está presente, extrae el resumen de la IA, citas principales y recomendaciones tácticas para ser citado.
   * **SERP Features**: Detección de bloques como People Also Ask, Local Pack, carruseles, etc.
   * **Google Shopping**: Si hay ofertas comerciales orgánicas o de pago, extrae de manera estructurada los productos, precios, nombres de tiendas y sus enlaces limpios.
@@ -158,7 +158,22 @@ Analiza el estado de las páginas de resultados de Google (SERP) para palabras c
   * **Estrategia y Contenidos Recomendados**: Sugerencias de Títulos SEO, Meta descripciones y una guía táctica para la palabra clave seleccionada.
 
 * **Estrategia de Resiliencia en Peticiones**:
-  Debido a que el modelo en ocasiones puede retornar respuestas vacías al invocar herramientas de búsqueda en ráfagas consecutivas, el cliente implementa una lógica de reintentos progresiva de hasta **3 intentos (Exponential Backoff)**. Adicionalmente, el parseador limpia cualquier preámbulo inicial agregado por la IA antes de dividir las secciones del reporte.
+  Debido a que el modelo en ocasiones puede retornar respuestas vacías al invocar herramientas de búsqueda en ráfagas consecutivas, el cliente implementa una lógica de reintentos progresiva de hasta **3 intentos (Exponential Backoff)**. Adicionalmente, el parser limpia cualquier preámbulo inicial agregado por la IA antes de dividir las secciones del reporte.
+
+* **Parser de Secciones Robusto y Control de Saltos de Línea**:
+  El parser de secciones en `serpService.ts` implementa una expresión regular inteligente para `extractSection` que permite capturar de forma robusta las secciones del reporte aun si el formato de cabecera de Gemini varía (soportando niveles `##`, `###`, negritas `**` o nombres traducidos en castellano). Para evitar que los selectores de espacio en blanco consuman saltos de línea y omitan la primera línea de contenido de la sección (causando que el primer valor como `Informational: XX%` o `Suggested Title:` se pierda o muestre "Cargando..."), el parser utiliza específicamente `[ \t]*` (espacios y tabulaciones) en lugar del comodín `\s*` al analizar los límites del encabezado.
+
+* **Chips Interactivos de Inicio Rápido**:
+  Para acelerar la adopción por parte del usuario, se agregaron chips clicables con consultas de ejemplo representativas (`zapatillas Nike`, `psicólogo madrid`, `cómo aprender seo`, `receta de tortilla de patatas`) en el estado vacío inicial. Al hacer clic sobre ellos, rellenan automáticamente el buscador y lanzan la auditoría inmediatamente.
+
+* **Skeleton Loaders Estructurados**:
+  Se sustituyó el spinner estático central por el componente `SerpInsightsSkeleton` que simula la anatomía exacta del panel final (malla de tarjetas métricas con Búsqueda Local de 1 columna e Intención de Búsqueda de 3 columnas, acordeón para el análisis de competencia, paneles divididos para características de SERP y estrategias SEO, y la tabla de resultados orgánicos). Esto reduce drásticamente el Cumulative Layout Shift (CLS).
+
+* **Mensajería Dinámica de Carga**:
+  Un rotador animado cambia automáticamente el mensaje informativo cada 2.5 segundos durante el procesamiento en segundo plano (ej. buscando en Google, estructurando intenciones de usuario, redactando recomendación táctica), lo que reduce el tiempo de espera percibido.
+
+* **Personalización Visual de Encabezados H3**:
+  Para las subsecciones del Análisis Narrativo (`### Intención de Búsqueda y SERP Features`, `### Descripción de competencia`, `### Recomendación estratégica`), se inyectó una regla CSS global en `index.html` que formatea las etiquetas `h3` dentro del contenedor de markdown a `1.25em !important` (20px), con peso `700` y color gris oscuro. Esto asegura una jerarquía visual limpia acorde a los estándares del diseño del dashboard.
 
 ---
 
