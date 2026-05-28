@@ -71,3 +71,64 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-accent);
 }
+
+/* ==========================================
+   Estilos de Impresión Ejecutiva (PDF)
+   ========================================== */
+@media print {
+  @page {
+    margin: 1.6cm 1.2cm;
+    size: A4 portrait;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #111827 !important;
+    font-size: 12pt;
+  }
+
+  /* Forzar visibilidad de acordeones colapsables */
+  #full-report,
+  #grounding-sources {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  /* Evitar saltos de página a mitad de elementos clave */
+  .print-avoid-break {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Ajustes generales de fidelidad cromática y contraste */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+
+  /* Ocultar elementos interactivos del DOM */
+  .print-hidden {
+    display: none !important;
+  }
+
+  /* Enlaces impresos en color oscuro */
+  a {
+    color: #1d4ed8 !important;
+    text-decoration: underline !important;
+  }
+
+  /* Asegurar que las imágenes y favicons no se deformen */
+  img {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+}
+

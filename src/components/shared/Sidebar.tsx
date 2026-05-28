@@ -23,7 +23,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Mobile drawer backdrop */}
       {mobileOpen && (
         <div 
-          className="fixed inset-0 bg-navy/60 backdrop-blur-sm z-40 lg:hidden"
+          className="fixed inset-0 bg-navy/60 backdrop-blur-sm z-40 lg:hidden print:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
@@ -33,7 +33,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           collapsed ? 'w-72 lg:w-20' : 'w-72'
         } ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        } border-r border-navy-light shadow-2xl`}
+        } border-r border-navy-light shadow-2xl print:hidden`}
       >
         {/* Brand Header */}
         <div className="p-6 flex items-center justify-between border-b border-navy-light">

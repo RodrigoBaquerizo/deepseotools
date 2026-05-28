@@ -144,7 +144,7 @@ const App: React.FC = () => {
       {/* Main View Container */}
       <div className="flex-1 flex flex-col min-h-screen overflow-y-auto">
         {/* Mobile Header Bar */}
-        <header className="lg:hidden bg-navy text-white px-6 py-4 flex items-center justify-between border-b border-navy-light sticky top-0 z-30 shadow-md">
+        <header className="lg:hidden bg-navy text-white px-6 py-4 flex items-center justify-between border-b border-navy-light sticky top-0 z-30 shadow-md print:hidden">
           <div className="flex items-center gap-3">
             <button 
               onClick={() => setMobileSidebarOpen(true)}

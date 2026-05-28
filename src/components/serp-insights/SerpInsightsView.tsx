@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { ExportButton } from '../shared/ExportButton';
 import { 
   Search, Loader2, Globe, BarChart2, BookOpen, Sparkles, 
   Layout, Link as LinkIcon, Info, Target, MousePointer2, 
@@ -315,6 +316,43 @@ export const SerpInsightsView: React.FC = () => {
 
         {state.result && (
           <div className="space-y-10 animate-in slide-in-from-bottom-4 duration-700">
+            {/* Action Bar (Screen Only) */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-gray-100 rounded-3xl p-6 shadow-sm print:hidden">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Resultado del Análisis</span>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-base font-extrabold text-gray-900">"{keyword}"</span>
+                  <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">
+                    {geoMode === 'gps' ? resolvedGpsLabel : (GEO_PRESETS[geoMode as keyof typeof GEO_PRESETS]?.label || 'Global')}
+                  </span>
+                </div>
+              </div>
+              <ExportButton onExportPdf={() => window.print()} />
+            </div>
+
+            {/* Print-Only Executive Header */}
+            <div className="hidden print:flex flex-col border-b-2 border-indigo-600 pb-6 mb-8">
+              <div className="flex justify-between items-start">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-md">
+                    <Sparkles className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-extrabold text-sm tracking-tight text-indigo-900 uppercase">Deep SEO Suite</span>
+                    <span className="text-[9px] font-bold text-indigo-400 uppercase tracking-widest">Workspace</span>
+                  </div>
+                </div>
+                <div className="text-right text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                  <div>Fecha: {new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+                  <div>Ubicación: {geoMode === 'gps' ? resolvedGpsLabel : (GEO_PRESETS[geoMode as keyof typeof GEO_PRESETS]?.label || 'Global')}</div>
+                </div>
+              </div>
+              <div className="mt-6">
+                <h1 className="text-2xl font-black text-gray-900 tracking-tight">Reporte de Análisis SERP: {keyword}</h1>
+                <p className="text-xs text-gray-500 mt-1">Informe estratégico consolidado e insights del motor de búsqueda.</p>
+              </div>
+            </div>
+
             {/* Top Metrics Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
               <MetricCard 
@@ -423,7 +461,7 @@ export const SerpInsightsView: React.FC = () => {
             {/* Full Report Narrative */}
             <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden">
               <button 
-                className="w-full px-8 py-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                className="w-full px-8 py-6 flex items-center justify-between hover:bg-gray-50 transition-colors print:bg-transparent print:border-b print:border-gray-100 print:py-4 print:px-0"
                 onClick={() => {
                   const el = document.getElementById('full-report');
                   el?.classList.toggle('hidden');
@@ -433,7 +471,7 @@ export const SerpInsightsView: React.FC = () => {
                   <MessageSquare className="w-5 h-5 text-gray-500" />
                   <span className="font-bold text-gray-900 uppercase text-xs tracking-widest">Análisis Narrativo Completo</span>
                 </div>
-                <ChevronRight className="w-5 h-5 text-gray-400" />
+                <ChevronRight className="w-5 h-5 text-gray-400 print:hidden" />
               </button>
               <div id="full-report" className="hidden px-8 pb-12 pt-4 border-t border-gray-50">
                  <div className="prose prose-indigo max-w-none text-gray-600 text-sm leading-relaxed">
@@ -656,12 +694,12 @@ export const SerpInsightsView: React.FC = () => {
                     <tr className="border-b border-gray-100">
                       <th className="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Posición</th>
                       <th className="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Contenido del Resultado</th>
-                      <th className="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-right">Acción</th>
+                      <th className="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-right print:hidden">Acción</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
                     {state.result.organicResults.map((res, i) => (
-                      <tr key={i} className="hover:bg-indigo-50/30 transition-colors group">
+                      <tr key={i} className="hover:bg-indigo-50/30 transition-colors group print-avoid-break">
                         <td className="px-8 py-6">
                           <span className="text-2xl font-black text-gray-200 group-hover:text-indigo-200 transition-colors">{i + 1}</span>
                         </td>
@@ -691,7 +729,7 @@ export const SerpInsightsView: React.FC = () => {
                           </div>
                           <p className="text-xs text-gray-500 line-clamp-2 max-w-2xl">{res.description}</p>
                         </td>
-                        <td className="px-8 py-6 text-right">
+                        <td className="px-8 py-6 text-right print:hidden">
                           <a href={res.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center p-2 rounded-lg bg-gray-100 text-gray-400 hover:bg-indigo-600 hover:text-white transition-all">
                             <ExternalLink className="w-5 h-5" />
                           </a>
@@ -707,7 +745,7 @@ export const SerpInsightsView: React.FC = () => {
             {state.result.groundingLinks.length > 0 && (
               <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden">
                 <button
-                  className="w-full px-8 py-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                  className="w-full px-8 py-6 flex items-center justify-between hover:bg-gray-50 transition-colors print:bg-transparent print:border-b print:border-gray-100 print:py-4 print:px-0"
                   onClick={() => {
                     const el = document.getElementById('grounding-sources');
                     el?.classList.toggle('hidden');
@@ -718,7 +756,7 @@ export const SerpInsightsView: React.FC = () => {
                     <span className="font-bold text-gray-900 uppercase text-xs tracking-widest">Fuentes verificadas del análisis</span>
                     <span className="text-[10px] bg-indigo-50 text-indigo-600 font-bold px-2 py-0.5 rounded-full border border-indigo-100">{state.result.groundingLinks.length} fuentes</span>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                  <ChevronRight className="w-5 h-5 text-gray-400 print:hidden" />
                 </button>
                 <div id="grounding-sources" className="hidden px-8 pb-8 pt-2 border-t border-gray-50">
                   <p className="text-xs text-gray-400 mb-4 italic">Páginas web reales consultadas por Gemini vía Google Search para generar este análisis.</p>
