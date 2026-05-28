@@ -38,6 +38,10 @@ Este archivo contiene el listado de tareas pendientes y terminadas para optimiza
   - *Objetivo:* Mejorar el rendimiento percibido (perceived performance) y mitigar el Cumulative Layout Shift (CLS) durante las peticiones a la API.
 - [x] **Estructura ejecutiva para el Análisis Narrativo**: Mejorar el prompt de Gemini para estructurar el "Análisis narrativo completo" en secciones estándar obligatorias mediante encabezados claros, subtítulos y listas de viñetas (bullet points) para que sea un reporte más ejecutivo y fácil de presentar.
   - *Objetivo:* Evitar textos extensos en bloques continuos y estandarizar la presentación de insights competitivos.
+- [x] **Exportación a PDF con Estructuración Ejecutiva**: Desarrollar un botón de exportación para generar reportes ejecutivos en formato PDF.
+  - *Detalles:* Incluye branding unificado de "Deep SEO Suite", diseño de rejilla adaptativo en impresión (flex-col para tarjetas métricas en Página 1), paginación controlada mediante saltos de página lógicos, prevención de cortes a la mitad en secciones compactas (`break-inside: avoid`), visualización completa de tablas extensas y corrección de desbordamientos.
+- [x] **Exportación a PowerPoint (.pptx) Estilo Libre**: Desarrollar la exportación del reporte a formato PowerPoint widescreen 16:9 sin branding ni estilos de colores agresivos para que el usuario añada su propia plantilla.
+  - *Detalles:* Generado localmente en cliente mediante pptxgenjs sin llamadas de IA ni consumo de tokens. Incluye 7 slides cubriendo intenciones de búsqueda, AI Overview (opcional), ofertas de Shopping (opcional), estrategias recomendadas, SERP features, palabras clave relacionadas y el Top 10 orgánico ajustado en una sola tabla compacta de 8-9.5pt.
 - [ ] **Optimización del tiempo de carga**: Optimizar el procesamiento de peticiones y respuestas con Gemini (reduciendo latencias de raspado y grounding) para agilizar el análisis cuando existen múltiples tipos de resultados.
   - *Objetivo:* Reducir el tiempo de espera percibido en búsquedas complejas.
 

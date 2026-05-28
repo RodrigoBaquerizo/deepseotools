@@ -3,9 +3,10 @@ import { Download, FileText, FileSpreadsheet, Presentation, ChevronDown, Check }
 
 interface ExportButtonProps {
   onExportPdf: () => void;
+  onExportPptx: () => void;
 }
 
-export const ExportButton: React.FC<ExportButtonProps> = ({ onExportPdf }) => {
+export const ExportButton: React.FC<ExportButtonProps> = ({ onExportPdf, onExportPptx }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -25,6 +26,8 @@ export const ExportButton: React.FC<ExportButtonProps> = ({ onExportPdf }) => {
     setIsOpen(false);
     if (format === 'pdf') {
       onExportPdf();
+    } else if (format === 'pptx') {
+      onExportPptx();
     }
   };
 
@@ -62,19 +65,18 @@ export const ExportButton: React.FC<ExportButtonProps> = ({ onExportPdf }) => {
             </div>
           </button>
 
-          {/* Opción PowerPoint (PPT) - Desactivado */}
+          {/* Opción PowerPoint (PPT) */}
           <button
-            disabled
-            className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left text-gray-400 cursor-not-allowed opacity-60"
-            title="Próximamente"
+            onClick={() => handleExportClick('pptx', true)}
+            className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left hover:bg-orange-50/50 text-gray-700 hover:text-orange-600 transition-colors group"
           >
             <div className="flex items-center gap-2.5">
-              <div className="p-1.5 rounded-lg bg-gray-50 text-gray-400">
+              <div className="p-1.5 rounded-lg bg-orange-50 text-orange-500 group-hover:bg-orange-100 transition-colors">
                 <Presentation className="w-4 h-4" />
               </div>
               <div className="flex flex-col">
                 <span className="text-xs font-bold">Presentación PPT</span>
-                <span className="text-[9px] text-gray-400 font-medium">Próximamente</span>
+                <span className="text-[9px] text-gray-400 font-medium">Diapositivas listas para editar</span>
               </div>
             </div>
           </button>

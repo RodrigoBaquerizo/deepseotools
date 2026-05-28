@@ -104,6 +104,28 @@ body {
     page-break-inside: avoid !important;
   }
 
+  /* Forzar salto de página antes del elemento */
+  .print-page-break {
+    break-before: page !important;
+    page-break-before: always !important;
+  }
+
+  /* Repetir cabeceras de tablas en páginas subsiguientes */
+  thead {
+    display: table-header-group !important;
+  }
+
+  tr {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Evitar títulos huérfanos al final de la página */
+  h1, h2, h3, h4, h5, h6 {
+    break-after: avoid-page !important;
+    page-break-after: avoid !important;
+  }
+
   /* Ajustes generales de fidelidad cromática y contraste */
   * {
     -webkit-print-color-adjust: exact !important;
@@ -129,6 +151,14 @@ body {
   img {
     max-width: 100% !important;
     page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Desactivar overflows y alturas fijas que cortan la impresión de tablas multi-página */
+  html, body, #root, .min-h-screen, [class*="overflow-"] {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
   }
 }
 

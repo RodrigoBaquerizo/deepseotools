@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { analyzeSerp } from '../../services/serpService';
 import { SearchState, SerpFeature, OrganicResult } from '../../types';
+import { exportSerpToPptx } from '../../services/pptxExportService';
 
 const FeatureIcon = ({ name }: { name: string }) => {
   const n = name.toLowerCase();
@@ -194,7 +195,7 @@ export const SerpInsightsView: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Header & Search Bar inside the content area */}
-      <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm flex flex-col gap-4">
+      <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm flex flex-col gap-4 print-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-3">
             <div className="bg-indigo-600 p-2.5 rounded-xl shadow-lg shadow-indigo-200">
@@ -315,9 +316,9 @@ export const SerpInsightsView: React.FC = () => {
         )}
 
         {state.result && (
-          <div className="space-y-10 animate-in slide-in-from-bottom-4 duration-700">
+          <div className="space-y-10 print:space-y-0 print:flex print:flex-col animate-in slide-in-from-bottom-4 duration-700">
             {/* Action Bar (Screen Only) */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-gray-100 rounded-3xl p-6 shadow-sm print:hidden">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-gray-100 rounded-3xl p-6 shadow-sm print-hidden">
               <div className="flex flex-col">
                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Resultado del Análisis</span>
                 <div className="flex items-center gap-2 mt-1">
@@ -327,11 +328,11 @@ export const SerpInsightsView: React.FC = () => {
                   </span>
                 </div>
               </div>
-              <ExportButton onExportPdf={() => window.print()} />
+              <ExportButton onExportPdf={() => window.print()} onExportPptx={() => exportSerpToPptx(state.result!)} />
             </div>
 
             {/* Print-Only Executive Header */}
-            <div className="hidden print:flex flex-col border-b-2 border-indigo-600 pb-6 mb-8">
+            <div className="hidden print:flex flex-col border-b-2 border-indigo-600 pb-6 mb-8 print:order-1">
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-md">
@@ -354,7 +355,7 @@ export const SerpInsightsView: React.FC = () => {
             </div>
 
             {/* Top Metrics Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 print:order-2 print:flex print:flex-col print:w-full print:gap-4 print-avoid-break">
               <MetricCard 
                 title="Búsqueda Local" 
                 value={state.result.location} 
@@ -459,7 +460,7 @@ export const SerpInsightsView: React.FC = () => {
             </div>
 
             {/* Full Report Narrative */}
-            <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden print:order-5 print-page-break print:border-0 print:shadow-none print:bg-transparent print:p-0 print:rounded-none print:overflow-visible">
               <button 
                 className="w-full px-8 py-6 flex items-center justify-between hover:bg-gray-50 transition-colors print:bg-transparent print:border-b print:border-gray-100 print:py-4 print:px-0"
                 onClick={() => {
@@ -469,11 +470,11 @@ export const SerpInsightsView: React.FC = () => {
               >
                 <div className="flex items-center gap-3">
                   <MessageSquare className="w-5 h-5 text-gray-500" />
-                  <span className="font-bold text-gray-900 uppercase text-xs tracking-widest">Análisis Narrativo Completo</span>
+                  <span className="font-bold text-gray-900 uppercase text-xs tracking-widest print:text-lg print:normal-case print:font-extrabold print:tracking-tight">Análisis Narrativo Completo</span>
                 </div>
-                <ChevronRight className="w-5 h-5 text-gray-400 print:hidden" />
+                <ChevronRight className="w-5 h-5 text-gray-400 print-hidden" />
               </button>
-              <div id="full-report" className="hidden px-8 pb-12 pt-4 border-t border-gray-50">
+              <div id="full-report" className="hidden px-8 pb-12 pt-4 border-t border-gray-50 print:px-0 print:pt-4 print:pb-0 print:border-t-0">
                  <div className="prose prose-indigo max-w-none text-gray-600 text-sm leading-relaxed">
                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{state.result.rawText}</ReactMarkdown>
                  </div>
@@ -482,7 +483,7 @@ export const SerpInsightsView: React.FC = () => {
 
             {/* AI Overview Spotlight */}
             {state.result.aiOverview.present && (
-              <div className="bg-white rounded-[2rem] border-2 border-indigo-100 p-8 shadow-xl shadow-indigo-100/50 relative overflow-hidden group">
+              <div className="bg-white rounded-[2rem] border-2 border-indigo-100 p-8 shadow-xl shadow-indigo-100/50 relative overflow-hidden group print:order-3 print-avoid-break print:border print:p-6 print:rounded-3xl print:shadow-none print:overflow-visible">
                 <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform"><Sparkles className="w-32 h-32 text-indigo-600" /></div>
                 <div className="relative z-10">
                   <div className="flex items-center gap-3 mb-6">
@@ -548,7 +549,7 @@ export const SerpInsightsView: React.FC = () => {
 
             {/* Organic Shopping Analysis */}
             {state.result.shoppingAnalysis?.present && (
-              <div className="bg-white rounded-[2rem] border border-emerald-100 p-8 shadow-xl shadow-emerald-50 relative overflow-hidden">
+              <div className="bg-white rounded-[2rem] border border-emerald-100 p-8 shadow-xl shadow-emerald-50 relative overflow-hidden print:order-4 print-avoid-break print:p-6 print:rounded-3xl print:shadow-none print:overflow-visible">
                 <div className="flex items-center gap-3 mb-8">
                   <div className="p-3 bg-emerald-600 rounded-2xl shadow-lg shadow-emerald-100">
                     <ShoppingBag className="text-white w-6 h-6" />
@@ -608,17 +609,17 @@ export const SerpInsightsView: React.FC = () => {
             )}
 
             {/* Features & Strategy */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 print:order-6 print-page-break print:block print:space-y-6">
               {/* Features List */}
               <div className="lg:col-span-5 space-y-6">
-                <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
+                <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm print-avoid-break print:overflow-visible">
                   <div className="flex items-center gap-2 mb-6">
                     <Layout className="text-gray-900 w-5 h-5" />
                     <h3 className="font-bold text-gray-900 uppercase text-[10px] tracking-widest">SERP Features Detectadas</h3>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {state.result.features.map((feature, i) => (
-                      <div key={i} className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col gap-2 hover:bg-white hover:shadow-md transition-all">
+                      <div key={i} className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col gap-2 hover:bg-white hover:shadow-md transition-all print:bg-white print:p-3">
                         <div className="flex items-center gap-2 font-bold text-indigo-700">
                           <FeatureIcon name={feature.name} />
                           <span className="text-xs">{feature.name}</span>
@@ -630,7 +631,7 @@ export const SerpInsightsView: React.FC = () => {
                 </div>
 
                 {/* Related Keywords */}
-                <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
+                <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm print-avoid-break print:mt-6 print:overflow-visible">
                    <div className="flex items-center gap-2 mb-4">
                     <Hash className="text-gray-900 w-5 h-5" />
                     <h3 className="font-bold text-gray-900 uppercase text-[10px] tracking-widest">Búsquedas Relacionadas</h3>
@@ -646,32 +647,32 @@ export const SerpInsightsView: React.FC = () => {
               </div>
 
               {/* Suggestions Strategy */}
-              <div className="lg:col-span-7 bg-white rounded-3xl border border-gray-100 p-8 shadow-sm">
+              <div className="lg:col-span-7 bg-white rounded-3xl border border-gray-100 p-8 shadow-sm print:overflow-visible">
                 <div className="flex items-center gap-2 mb-8">
                   <Lightbulb className="text-amber-500 w-6 h-6" />
                   <h3 className="text-xl font-extrabold text-gray-900">Estrategia SEO Sugerida</h3>
                 </div>
                 
                 <div className="space-y-8">
-                  <div className="space-y-3">
+                  <div className="space-y-3 print-avoid-break">
                     <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block">Meta Title Optimizado</label>
-                    <div className="p-4 bg-gray-50 border-l-4 border-indigo-500 rounded-r-xl font-bold text-base text-gray-800">
+                    <div className="p-4 bg-gray-50 border-l-4 border-indigo-500 rounded-r-xl font-bold text-base text-gray-800 print:bg-gray-50 print:border-indigo-500">
                       {state.result.suggestions.title || "Cargando..."}
                     </div>
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="space-y-3 print-avoid-break">
                     <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block">Meta Description Sugerida</label>
-                    <div className="p-4 bg-gray-50 border-l-4 border-emerald-500 rounded-r-xl text-gray-600 text-xs leading-relaxed">
+                    <div className="p-4 bg-gray-50 border-l-4 border-emerald-500 rounded-r-xl text-gray-600 text-xs leading-relaxed print:bg-gray-50 print:border-emerald-500">
                       {state.result.suggestions.metaDescription || "Cargando..."}
                     </div>
                   </div>
 
-                  <div className="pt-6 border-t border-gray-100">
+                  <div className="pt-6 border-t border-gray-100 print:border-t-0 print:pt-4 print-avoid-break">
                      <h4 className="text-xs font-bold text-gray-900 mb-3 flex items-center gap-2 italic">
                        <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Guía Táctica:
                      </h4>
-                     <div className="text-xs text-gray-600 leading-relaxed bg-amber-50/50 p-5 rounded-2xl prose prose-amber max-w-none">
+                     <div className="text-xs text-gray-600 leading-relaxed bg-amber-50/50 p-5 rounded-2xl prose prose-amber max-w-none print:bg-amber-50/30 print:p-4">
                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{state.result.suggestions.strategy}</ReactMarkdown>
                      </div>
                   </div>
@@ -680,30 +681,30 @@ export const SerpInsightsView: React.FC = () => {
             </div>
 
             {/* Organic Results Table */}
-            <div className="bg-white rounded-[2rem] border border-gray-100 overflow-hidden shadow-sm">
-              <div className="bg-gray-900 text-white px-8 py-6 flex items-center justify-between">
+            <div className="bg-white rounded-[2rem] border border-gray-100 overflow-hidden shadow-sm print:order-7 print-page-break print:border-0 print:shadow-none print:rounded-none print:overflow-visible">
+              <div className="bg-gray-900 text-white px-8 py-6 flex items-center justify-between print:bg-transparent print:text-gray-900 print:px-0 print:py-4 print:border-b print:border-gray-200">
                 <div className="flex items-center gap-3">
-                  <Layout className="w-6 h-6 text-indigo-400" />
+                  <Layout className="w-6 h-6 text-indigo-400 print:text-indigo-600" />
                   <h3 className="text-lg font-bold">Resultados Orgánicos Principales</h3>
                 </div>
-                <span className="text-xs font-bold bg-white/10 px-3 py-1 rounded-full text-indigo-300 uppercase">Top 10 Análisis</span>
+                <span className="text-xs font-bold bg-white/10 px-3 py-1 rounded-full text-indigo-300 uppercase print:border print:border-gray-300 print:text-gray-600 print:bg-transparent">Top 10 Análisis</span>
               </div>
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto print:overflow-visible">
                 <table className="w-full text-left border-collapse">
                   <thead className="bg-gray-50/50">
                     <tr className="border-b border-gray-100">
-                      <th className="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Posición</th>
-                      <th className="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Contenido del Resultado</th>
-                      <th className="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-right print:hidden">Acción</th>
+                      <th className="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest print:px-4">Posición</th>
+                      <th className="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest print:px-4">Contenido del Resultado</th>
+                      <th className="px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-right print-hidden">Acción</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
                     {state.result.organicResults.map((res, i) => (
                       <tr key={i} className="hover:bg-indigo-50/30 transition-colors group print-avoid-break">
-                        <td className="px-8 py-6">
-                          <span className="text-2xl font-black text-gray-200 group-hover:text-indigo-200 transition-colors">{i + 1}</span>
+                        <td className="px-8 py-6 print:px-4 print:py-4">
+                          <span className="text-2xl font-black text-gray-200 group-hover:text-indigo-200 transition-colors print:text-gray-400">{i + 1}</span>
                         </td>
-                        <td className="px-8 py-6">
+                        <td className="px-8 py-6 print:px-4 print:py-4">
                           <a href={res.url} target="_blank" rel="noopener noreferrer" className="inline-block group/link">
                             <h4 className="font-bold text-indigo-600 text-base mb-1 group-hover/link:underline">{res.title}</h4>
                           </a>
@@ -729,7 +730,7 @@ export const SerpInsightsView: React.FC = () => {
                           </div>
                           <p className="text-xs text-gray-500 line-clamp-2 max-w-2xl">{res.description}</p>
                         </td>
-                        <td className="px-8 py-6 text-right print:hidden">
+                        <td className="px-8 py-6 text-right print-hidden">
                           <a href={res.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center p-2 rounded-lg bg-gray-100 text-gray-400 hover:bg-indigo-600 hover:text-white transition-all">
                             <ExternalLink className="w-5 h-5" />
                           </a>
@@ -743,7 +744,7 @@ export const SerpInsightsView: React.FC = () => {
 
             {/* Grounding Sources */}
             {state.result.groundingLinks.length > 0 && (
-              <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden">
+              <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden print:order-8 print-avoid-break print:border-0 print:shadow-none print:rounded-none print:px-0 print:pt-6 print:overflow-visible">
                 <button
                   className="w-full px-8 py-6 flex items-center justify-between hover:bg-gray-50 transition-colors print:bg-transparent print:border-b print:border-gray-100 print:py-4 print:px-0"
                   onClick={() => {
@@ -753,12 +754,12 @@ export const SerpInsightsView: React.FC = () => {
                 >
                   <div className="flex items-center gap-3">
                     <LinkIcon className="w-5 h-5 text-indigo-500" />
-                    <span className="font-bold text-gray-900 uppercase text-xs tracking-widest">Fuentes verificadas del análisis</span>
-                    <span className="text-[10px] bg-indigo-50 text-indigo-600 font-bold px-2 py-0.5 rounded-full border border-indigo-100">{state.result.groundingLinks.length} fuentes</span>
+                    <span className="font-bold text-gray-900 uppercase text-xs tracking-widest print:text-base print:normal-case print:font-extrabold print:tracking-tight">Fuentes verificadas del análisis</span>
+                    <span className="text-[10px] bg-indigo-50 text-indigo-600 font-bold px-2 py-0.5 rounded-full border border-indigo-100 print:border-gray-200">{state.result.groundingLinks.length} fuentes</span>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400 print:hidden" />
+                  <ChevronRight className="w-5 h-5 text-gray-400 print-hidden" />
                 </button>
-                <div id="grounding-sources" className="hidden px-8 pb-8 pt-2 border-t border-gray-50">
+                <div id="grounding-sources" className="hidden px-8 pb-8 pt-2 border-t border-gray-50 print:px-0 print:pt-4 print:pb-0 print:border-t-0">
                   <p className="text-xs text-gray-400 mb-4 italic">Páginas web reales consultadas por Gemini vía Google Search para generar este análisis.</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {state.result.groundingLinks.map((link, i) => (
@@ -797,7 +798,7 @@ const MetricCard = ({ title, value, icon, color, children }: { title: string; va
           </div>
           <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{title}</span>
         </div>
-        <p className="text-lg font-extrabold text-gray-900 truncate">{value}</p>
+        <p className="text-lg font-extrabold text-gray-900 truncate print:whitespace-normal print:overflow-visible">{value}</p>
       </div>
       {children && (
         <div className="mt-3 pt-3 border-t border-gray-100">

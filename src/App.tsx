@@ -144,7 +144,7 @@ const App: React.FC = () => {
       {/* Main View Container */}
       <div className="flex-1 flex flex-col min-h-screen overflow-y-auto">
         {/* Mobile Header Bar */}
-        <header className="lg:hidden bg-navy text-white px-6 py-4 flex items-center justify-between border-b border-navy-light sticky top-0 z-30 shadow-md print:hidden">
+        <header className="lg:hidden bg-navy text-white px-6 py-4 flex items-center justify-between border-b border-navy-light sticky top-0 z-30 shadow-md print-hidden">
           <div className="flex items-center gap-3">
             <button 
               onClick={() => setMobileSidebarOpen(true)}
@@ -340,7 +340,7 @@ const App: React.FC = () => {
         </main>
 
         {/* Global Shared Footer */}
-        <footer className="border-t border-border-light bg-white py-6 mt-auto">
+        <footer className="border-t border-border-light bg-white py-6 mt-auto print-hidden">
           <div className="max-w-6xl mx-auto px-6 sm:px-8 flex items-center justify-between text-xs text-text-muted">
             <span>© {new Date().getFullYear()} Deep SEO Suite</span>
             <div className="flex items-center gap-1">

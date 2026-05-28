@@ -175,6 +175,20 @@ Analiza el estado de las páginas de resultados de Google (SERP) para palabras c
 * **Personalización Visual de Encabezados H3**:
   Para las subsecciones del Análisis Narrativo (`### Intención de Búsqueda y SERP Features`, `### Descripción de competencia`, `### Recomendación estratégica`), se inyectó una regla CSS global en `index.html` que formatea las etiquetas `h3` dentro del contenedor de markdown a `1.25em !important` (20px), con peso `700` y color gris oscuro. Esto asegura una jerarquía visual limpia acorde a los estándares del diseño del dashboard.
 
+* **Exportación Ejecutiva a PDF con Paginación Controlada y Branding**:
+  El sistema incluye un exportador a PDF integrado en el navegador mediante el comando `window.print()` y estilos dirigidos por `@media print` en `index.css`:
+  1. *Branding Premium:* Inyecta un encabezado de impresión exclusivo (`hidden print:flex`) con el logotipo y el branding de "Deep SEO Suite", y el título dinámico *"Reporte de Análisis SERP: [Palabra clave]"*.
+  2. *Control de Paginación Firme:* Utiliza clases como `.print-page-break` (`break-before: page !important`) para forzar un orden estructurado de 5 páginas fijas: Página 1 (Métricas e Intenciones), Página 2 (Análisis Narrativo Completo), Página 3 (Estrategia y SERP Features), Página 4-5 (Resultados Orgánicos y Fuentes).
+  3. *Prevención de Cortes en Secciones:* Aplica `.print-avoid-break` (`break-inside: avoid !important`) a tarjetas y filas de tablas para impedir que textos compactos o elementos se partan a la mitad entre páginas.
+  4. *Evitar Truncamientos y Desbordamientos:* En impresión, la rejilla de métricas colapsa a un flujo vertical de ancho completo (`print:flex print:flex-col print:w-full`) para evitar tarjetas altas y angostas. El valor de "Búsqueda Local" desactiva su truncamiento (`print:whitespace-normal print:overflow-visible`) para mostrar ubicaciones completas (ej. *"España (Madrid)"*). Las tarjetas de características y sugerencias conservan sus bordes y espaciados internos evitando que los textos toquen los bordes del fondo blanco, y los contenedores y wrappers de tablas extensas deshabilitan el truncado por scroll (`print:overflow-visible`) para permitir el flujo multi-página.
+
+* **Exportación Estilo Libre a PowerPoint (.pptx)**:
+  Se diseñó un servicio de exportación cliente en TypeScript (`pptxExportService.ts`) utilizando la librería `pptxgenjs`:
+  1. *Estilo Neutral:* Genera diapositivas con fondo blanco puro y tipografía Arial estándar sin logotipos ni colores de marca forzados, permitiendo al usuario final aplicar su propia plantilla de diseño corporativo de manera limpia.
+  2. *Diseño Panorámico (16:9):* Estructura la presentación en 7 diapositivas widescreen que cubren: Portada, Métricas e Intención de Búsqueda, AI Overview (si aplica), Ofertas de Google Shopping (si aplica), Estrategia SEO y Guía Táctica, SERP Features y Búsquedas Relacionadas, y los Resultados Orgánicos Principales.
+  3. *Tabla Compacta Consolidada:* Para asegurar que los 10 competidores orgánicos quepan en una única diapositiva sin desbordarse ni cortarse verticalmente, la tabla orgánica de la diapositiva 7 utiliza tamaños de letra compactos (8-9.5pt) y márgenes de celda eficientes que muestran con claridad la Posición, Título, Dominio y Descripción.
+  4. *Sin Consumo de Tokens:* La exportación se realiza de manera 100% programática localmente en el navegador a partir del objeto de resultados estructurado actual, evitando llamadas a APIs de IA y costes innecesarios.
+
 ---
 
 ## 📋 Reglas y Directrices de Desarrollo
