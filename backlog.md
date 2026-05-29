@@ -49,6 +49,18 @@ Este archivo contiene el listado de tareas pendientes y terminadas para optimiza
 
 ## 3. Módulo SEO Benchmark
 
+- [x] **Entrada de dominios inteligente (Normalización de URLs)**: Autocompletar automáticamente el protocolo `https://` cuando el usuario introduzca dominios o subdominios simples (ej. `ejemplo.com`), evitando errores de validación de URL.
+- [x] **Rediseño del panel de entrada inicial**: Eliminar el acordeón obligatorio de competidores. Mostrar directamente los inputs de "Tu Web" y "Competidores" (mín. 1 - máx. 5) en un diseño premium integrado y visible por defecto. Reubicar los "Términos de búsqueda" (opcionales) en una sección desplegable de ajustes avanzados.
+- [ ] **Exportación multiformato (PDF y PPTX)**:
+  - **Exportar a PDF**: Crear estilos de impresión (`@media print`) optimizados para el benchmark, ocultando la Sidebar/menús, reorganizando las tablas comparativas y controlando la paginación con `break-inside: avoid`.
+  - **Exportar a PPTX**: Integrar la generación de diapositivas widescreen 16:9 editables usando `pptxgenjs` con un diseño limpio (Portada, Comparativa Técnica, Matriz de Keywords, Brechas y Sugerencias de Plan de Acción).
+- [x] **Semáforo Visual de Optimización de Etiquetas ("Element Health Badges")**: Añadir badges visuales de estado (Verde/Amarillo/Rojo) basados en criterios SEO reales (longitud de Title y Meta Description, unicidad de H1) para facilitar un escaneo rápido del diagnóstico técnico.
+- [x] **Visualizador comparativo de jerarquía de encabezados (Heading Outline)**: Diseñar una estructura tipo árbol interactivo para comparar de forma paralela la disposición y orden de H1, H2 y H3 de todas las webs analizadas.
+- [x] **Comparativa y cobertura de Schema Markup (Datos Estructurados)**: Crear un panel que resalte visualmente qué tipos de esquemas Schema.org tienen configurados los competidores pero de los que el usuario carece (ej. `Product`, `FAQPage`, `LocalBusiness`).
+- [x] **Badge de diagnóstico de método de rastreo**: Mostrar de forma discreta si cada sitio ha requerido renderizado JS (Playwright) o carga rápida (Cheerio/fetch), permitiendo diagnosticar la dependencia técnica de frameworks de cliente de los competidores.
 - [ ] **Optimización del flujo de carga y Skeletons**: Implementar estados de carga progresivos para la comparación de múltiples competidores.
-- [ ] **Comparador visual de etiquetas meta**: Crear tarjetas visuales paralelas que contrasten de forma clara el Title, Description y jerarquía de encabezados (H1-H3) de todas las URLs analizadas.
 - [ ] **Reporte visual de brechas de contenido**: Diseñar paneles interactivos para destacar los términos y temáticas cubiertas por la competencia que el usuario no tiene en su web.
+- [ ] **Unificación de brechas (GAPs de secciones y contenido)**: Fusionar las secciones de "GAPs de secciones" y "GAPs de contenido" en una sola vista unificada para reducir el ruido visual y consolidar los análisis de brechas del reporte.
+- [ ] **API de Scraping Externa (Fallback)**: Integrar una API de scraping externa (ej. ZenRows, ScrapingBee o ScraperAPI) como fallback en producción cuando Cheerio sea bloqueado por protecciones Cloudflare/bots o requiera renderizado dinámico de JavaScript, eliminando la dependencia de binarios locales de Playwright.
+
+

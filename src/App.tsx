@@ -77,6 +77,15 @@ const App: React.FC = () => {
     });
   }, []);
 
+  const normalizeUrl = (url: string): string => {
+    let cleaned = url.trim();
+    if (!cleaned) return '';
+    if (!/^https?:\/\//i.test(cleaned) && !cleaned.startsWith('/')) {
+      cleaned = 'https://' + cleaned;
+    }
+    return cleaned;
+  };
+
   const validateUrl = (url: string) => {
     if (url.startsWith('/')) return true;
     try { new URL(url); return true; } catch { return false; }
@@ -89,33 +98,41 @@ const App: React.FC = () => {
     setCompetitorAnalyses([]);
     setBenchmarkResults(null);
 
-    const validUserSiteUrl = userSiteUrl.trim();
-    const validCompetitorUrls = competitorUrls.filter(url => url.trim() !== '');
+    const normalizedUserSiteUrl = normalizeUrl(userSiteUrl);
+    const normalizedCompetitorUrls = competitorUrls
+      .map(url => normalizeUrl(url))
+      .filter(url => url !== '');
 
-    if (!validUserSiteUrl) {
+    if (!normalizedUserSiteUrl) {
       setError('Por favor, introduce el dominio o subdirectorio de tu web.');
       setLoading(false); return;
     }
-    if (!validateUrl(validUserSiteUrl)) {
+    if (!validateUrl(normalizedUserSiteUrl)) {
       setError("El dominio de tu web no es válido. Debe empezar por 'http://', 'https://' o '/'.");
       setLoading(false); return;
     }
-    if (validCompetitorUrls.length === 0) {
+    if (normalizedCompetitorUrls.length === 0) {
       setError('Por favor, introduce al menos un dominio de competidor.');
       setLoading(false); return;
     }
-    const invalidUrl = validCompetitorUrls.find(url => !validateUrl(url));
+    const invalidUrl = normalizedCompetitorUrls.find(url => !validateUrl(url));
     if (invalidUrl) {
       setError(`El dominio '${invalidUrl}' no es válido.`);
       setLoading(false); return;
     }
 
+    // Actualizar visualmente los inputs para que el usuario reciba feedback
+    setUserSiteUrl(normalizedUserSiteUrl);
+    setCompetitorUrls(prev => prev.map(url => (url.trim() ? normalizeUrl(url) : url)));
+
     const cleanedTerms = searchTerms.split(',').map(t => t.trim()).filter(Boolean);
 
     try {
-      const userAnalysis = await analyzeWebsite(validUserSiteUrl, cleanedTerms);
+      const userAnalysis = await analyzeWebsite(normalizedUserSiteUrl, cleanedTerms);
       setUserSiteAnalysis(userAnalysis);
-      const competitorsData = await Promise.all(validCompetitorUrls.map(url => analyzeWebsite(url, cleanedTerms)));
+      const competitorsData = await Promise.all(
+        normalizedCompetitorUrls.map(url => analyzeWebsite(url, cleanedTerms))
+      );
       setCompetitorAnalyses(competitorsData);
       const benchmark = await getBenchmarkInsights(userAnalysis, competitorsData, cleanedTerms);
       setBenchmarkResults(benchmark);
@@ -188,81 +205,64 @@ const App: React.FC = () => {
               </section>
 
               {/* Analyzer Inputs Card */}
-              <section className="bg-surface rounded-3xl shadow-sm border border-border-light overflow-hidden">
-                {/* Main URL row */}
-                <div className="p-6 space-y-4 bg-white">
-                  <div>
-                    <label htmlFor="userSiteUrl" className="block text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-2">
-                      Tu web
-                    </label>
-                    <div className="flex items-center gap-3">
-                      <div className="relative flex-1">
-                        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                          <SearchIcon className="w-4 h-4" />
-                        </div>
-                        <input
-                          type="text"
-                          id="userSiteUrl"
-                          className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 bg-gray-50 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-20 transition-all duration-150"
-                          value={userSiteUrl}
-                          onChange={e => setUserSiteUrl(e.target.value)}
-                          onKeyDown={e => e.key === 'Enter' && handleAnalyze()}
-                          placeholder="https://ejemplo.com"
-                        />
-                      </div>
-                      <button
-                        onClick={handleAnalyze}
-                        disabled={loading}
-                        className="flex-shrink-0 px-6 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl shadow-sm hover:bg-indigo-700 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150"
-                      >
-                        {loading ? 'Analizando…' : 'Analizar'}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Error banner */}
-                  {error && (
-                    <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-2xl text-xs text-red-700 font-medium">
-                      <svg className="w-4 h-4 mt-0.5 flex-shrink-0 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
-                      <span>{error}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Accordion dropdown for competitors & terms */}
-                <div className="border-t border-gray-100 bg-white">
-                  <button
-                    onClick={() => setAccordionOpen(o => !o)}
-                    className="w-full flex items-center justify-between px-6 py-4 text-xs font-bold text-gray-500 hover:bg-indigo-50/50 hover:text-indigo-600 transition-colors duration-150"
-                  >
-                    <span className="uppercase tracking-widest">Competidores y términos de búsqueda</span>
-                    <ChevronIcon open={accordionOpen} className="w-4 h-4" />
-                  </button>
-
-                  {accordionOpen && (
-                    <div className="px-6 pb-6 pt-4 space-y-6 border-t border-gray-100 bg-[#FBFBFF]">
-                      
-                      {/* Competitors List */}
+              <section className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="p-6 space-y-6">
+                  
+                  {/* Grid layout for Web & Competitors */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    {/* Left Column: Tu Web */}
+                    <div className="space-y-4">
                       <div>
-                        <label className="block text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-3">
+                        <label htmlFor="userSiteUrl" className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+                          Tu web
+                        </label>
+                        <div className="relative">
+                          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                            <SearchIcon className="w-4 h-4" />
+                          </div>
+                          <input
+                            type="text"
+                            id="userSiteUrl"
+                            className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 bg-gray-50/50 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-20 transition-all duration-150"
+                            value={userSiteUrl}
+                            onChange={e => setUserSiteUrl(e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && handleAnalyze()}
+                            placeholder="ejemplo.com"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Instructions / Info tip */}
+                      <div className="p-4 bg-indigo-50/40 rounded-2xl border border-indigo-50/50 text-[11px] text-indigo-700 leading-relaxed">
+                        <p className="font-semibold mb-1">💡 Consejos de rastreo:</p>
+                        <p>Introduce tu dominio principal o un subdirectorio. El sistema rastreará el HTML en tiempo real y analizará la estructura SEO técnica y semántica para compararla frente a tu competencia.</p>
+                      </div>
+                    </div>
+
+                    {/* Right Column: Competidores */}
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
                           Competidores <span className="normal-case font-normal">(mín. 1 · máx. 5)</span>
                         </label>
                         <div className="space-y-3">
                           {competitorUrls.map((url, index) => (
                             <div key={index} className="flex items-center gap-2">
-                              <input
-                                type="text"
-                                className="flex-1 px-4 py-2 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-20 transition-all duration-150"
-                                value={url}
-                                onChange={e => handleCompetitorUrlChange(index, e.target.value)}
-                                placeholder={`https://competidor${index + 1}.com`}
-                              />
+                              <div className="relative flex-1">
+                                <input
+                                  type="text"
+                                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-20 transition-all duration-150"
+                                  value={url}
+                                  onChange={e => handleCompetitorUrlChange(index, e.target.value)}
+                                  onKeyDown={e => e.key === 'Enter' && handleAnalyze()}
+                                  placeholder={`competidor${index + 1}.com`}
+                                />
+                              </div>
                               {competitorUrls.length > 1 && (
                                 <button
                                   onClick={() => handleRemoveCompetitor(index)}
-                                  className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors duration-150"
+                                  className="p-2.5 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors duration-150"
                                   aria-label="Eliminar competidor"
                                 >
                                   <TrashIcon className="w-4 h-4" />
@@ -271,20 +271,33 @@ const App: React.FC = () => {
                             </div>
                           ))}
                         </div>
+
                         {competitorUrls.length < 5 && (
                           <button
                             onClick={handleAddCompetitor}
-                            className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-800 px-3 py-1.5 rounded-lg hover:bg-indigo-50 transition-colors duration-150"
+                            className="mt-2.5 flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-800 px-3 py-1.5 rounded-lg hover:bg-indigo-50 transition-colors duration-150"
                           >
                             <PlusIcon className="w-3.5 h-3.5" />
                             Añadir competidor
                           </button>
                         )}
                       </div>
+                    </div>
+                  </div>
 
-                      {/* Search Terms */}
-                      <div>
-                        <label htmlFor="searchTerms" className="block text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-2">
+                  {/* Advanced Options Accordion */}
+                  <div className="border-t border-gray-100 pt-4">
+                    <button
+                      onClick={() => setAccordionOpen(o => !o)}
+                      className="flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-indigo-600 transition-colors duration-150"
+                    >
+                      <span className="uppercase tracking-widest">Opciones Avanzadas (Palabras Clave)</span>
+                      <ChevronIcon open={accordionOpen} className="w-3.5 h-3.5" />
+                    </button>
+
+                    {accordionOpen && (
+                      <div className="mt-3 p-4 bg-[#FBFBFF] border border-gray-100 rounded-2xl animate-in fade-in slide-in-from-top-1 duration-150">
+                        <label htmlFor="searchTerms" className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
                           Términos de búsqueda <span className="normal-case font-normal">(opcional · separados por comas)</span>
                         </label>
                         <input
@@ -295,10 +308,34 @@ const App: React.FC = () => {
                           onChange={e => setSearchTerms(e.target.value)}
                           placeholder="SEO, marketing digital, desarrollo web"
                         />
+                        <p className="text-[10px] text-gray-400 mt-1.5">
+                          Si agregas palabras clave, Gemini analizará la optimización específica (presencia en H1, Title, etc.) de cada término en todas las páginas rastreadas.
+                        </p>
                       </div>
+                    )}
+                  </div>
 
+                  {/* Error banner */}
+                  {error && (
+                    <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-2xl text-xs text-red-700 font-medium animate-in fade-in duration-200">
+                      <svg className="w-4 h-4 mt-0.5 flex-shrink-0 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      <span>{error}</span>
                     </div>
                   )}
+
+                  {/* Action Button Row */}
+                  <div className="flex justify-end border-t border-gray-50 pt-4">
+                    <button
+                      onClick={handleAnalyze}
+                      disabled={loading}
+                      className="w-full sm:w-auto px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 active:scale-[0.98]"
+                    >
+                      {loading ? 'Analizando sitios web...' : 'Iniciar Análisis Comparativo'}
+                    </button>
+                  </div>
+
                 </div>
               </section>
 
